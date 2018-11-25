@@ -9,33 +9,53 @@ import java.text.ParseException;
 import java.util.*;
 
 public class Main extends Application {
-    Map <String,Integer> termsInDocMap =new HashMap<>();
+    Map<String, Integer> termsInDocMap = new HashMap<>();
+
     @Override
-    public void start(Stage primaryStage) throws Exception{
-    //  String doc = "<TEXT>14 MAY May 14 June 4 August 4 May 1994 MAY 1994 1,000,000 Dollars $450,000,000 $100 million 20.6m Dollars $100 billion 100bn Dollars 100 billion U.S. dollars 320 million U.S. dollars 1 trillion U.S. dollars 450,000 Dollars $450,000.563636336000000 1.7320 Dollars 10.6 percent 10.6 percentage 10,123 123 Thousand 1010.56 10,123,000 55 Million 10,123,000,000 55 Billion 7 Trillion 22 3/4 Million U.S. Dollars   </TEXT>";
-      //  String doc = "<TEXT>1,000,000 Dollars $450,000,000 $100 million 20.6m Dollars $100 billion 100bn Dollars 100 billion U.S. dollars 320 million U.S. dollars 1 trillion U.S. dollars 450,000 Dollars $450,000.563636336000000 1.7320 Dollars 10.6 percent 10.6 percentage 10,123 123 Thousand 1010.56 10,123,000 55 Million 10,123,000,000 55 Billion 7 Trillion 22 3/4 Million U.S. Dollars   </TEXT>";
+    public void start(Stage primaryStage) throws Exception {
+        //  String doc = "<TEXT>14 MAY May 14 June 4 August 4 May 1994 MAY 1994 1,000,000 Dollars $450,000,000 $100 million 20.6m Dollars $100 billion 100bn Dollars 100 billion U.S. dollars 320 million U.S. dollars 1 trillion U.S. dollars 450,000 Dollars $450,000.563636336000000 1.7320 Dollars 10.6 percent 10.6 percentage 10,123 123 Thousand 1010.56 10,123,000 55 Million 10,123,000,000 55 Billion 7 Trillion 22 3/4 Million U.S. Dollars   </TEXT>";
+        //  String doc = "<TEXT>1,000,000 Dollars $450,000,000 $100 million 20.6m Dollars $100 billion 100bn Dollars 100 billion U.S. dollars 320 million U.S. dollars 1 trillion U.S. dollars 450,000 Dollars $450,000.563636336000000 1.7320 Dollars 10.6 percent 10.6 percentage 10,123 123 Thousand 1010.56 10,123,000 55 Million 10,123,000,000 55 Billion 7 Trillion 22 3/4 Million U.S. Dollars   </TEXT>";
         String doc = "<text>21-22 Jan 10% 10 percent 10 percentage between 1,000,000 and 2,000,000 10,123 123 Thousand 1010.56 10,123,000 55 Billion 7 Trillion 1.7320 Dollars 22 3/4 Dollars $450,000 1,000,000 Dollars " +
-              "$450,000,000 $100 Million 10.6m 20.6m Dollars $100 Billion 100bn Dollars 100 Billion U.S. Dollars 320 Million U.S. Dollars 1 trillion U.S. Dollars 18 April APRIL 18 Apr 18 Jun 1994 JUNE 1994 June 1994 between 1 million and 2 million</text>";
+                "$450,000,000 $100 Million 10.6m 20.6m Dollars $100 Billion 100bn Dollars 100 Billion U.S. Dollars 320 Million U.S. Dollars 1 trillion U.S. Dollars 18 April APRIL 18 Apr 18 Jun 1994 JUNE 1994 June 1994 between 1 million and 2 million</text>";
         long start;
         long finish;
 /////
         //System.out.println(new Stemmer().stemTerm("university"));
         start = System.nanoTime();
-        java.util.List<java.util.Map.Entry<String,Integer>> pairList= new java.util.ArrayList<>();
-        pairList.add(new java.util.AbstractMap.SimpleEntry<>("Not Unique key1",1));
-        pairList.add(new java.util.AbstractMap.SimpleEntry<>("Not Unique key1",1));
+        java.util.List<java.util.Map.Entry<String, Integer>> pairList = new java.util.ArrayList<>();
+        pairList.add(new java.util.AbstractMap.SimpleEntry<>("Not Unique key1", 1));
+        pairList.add(new java.util.AbstractMap.SimpleEntry<>("Not Unique key1", 1));
         start = System.nanoTime();
-        for (int i=0; i<1000000; i++){
-            Integer x= new Integer(2);
+        for (int i = 0; i < 1000000; i++) {
+            Integer x = new Integer(2);
         }
         finish = System.nanoTime();
-        System.out.println((finish-start) * Math.pow(10,-9));
+        System.out.println((finish - start) * Math.pow(10, -9));
         start = System.nanoTime();
-        for (int i=0; i<100000; i++){
-            TermInDoc x = new TermInDoc("asd","asd");
+        for (int i = 0; i < 100000; i++) {
+            TermInDoc x = new TermInDoc("asd", "asd");
         }
         finish = System.nanoTime();
-        System.out.println((finish-start) * Math.pow(10,-9));
+        System.out.println((finish - start) * Math.pow(10, -9));
+
+
+        Map<String, Map<String, Integer>> termByTf = new HashMap<>();
+        Map<String, Integer> map = new HashMap<>();
+        map.put("doc", 2);
+        termByTf.put("term", map);
+        if (termByTf.get("term2") == null) {
+            Map<String, Integer> map2 = new HashMap<>();
+            map2.put("doc2", 1);
+            termByTf.put("term2", map2);
+        }
+            if (termByTf.get("term").get("doc2") == null) {
+                termByTf.get("term").put("doc2", 1);
+            {
+                termByTf.get("term").put("doc", termByTf.get("term").get("doc") + 1);
+            }
+        }
+    }
+
         //p.parsingTextToText(doc,"goni");
         //doc = "<text>2 million, dollar</text>";
 
@@ -184,7 +204,7 @@ public class Main extends Application {
         finishTime = System.nanoTime()-startTime;
         System.out.println(finishTime * Math.pow(10,-9));*/
 
-    }
+
 
 
 

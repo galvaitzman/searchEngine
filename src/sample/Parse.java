@@ -13,20 +13,102 @@ public class Parse {
     public static Map<String, String> months;
     public static Map<String, String> numbersAsWords;
     public static HashSet<String> stopWords;
-    public static Map <String, TermInCorpus> termsInCorpusMap; //String=term
-    public Map <String,TermInDoc> termsInDocMap = new HashMap<>();//
-    public static Stemmer [] stemmers;
-    public static Parse [] parsers;
-    public int jumpToNextWord=0;
+    //  public static Map <String, TermInCorpus> termsInCorpusMap; //String=term
+    //  public Map <String,TermInDoc> termsInDocMap = new HashMap<>();//
+    public static Stemmer stemmer;
+    public int jumpToNextWord = 0;
 
+    /// GAL
+    // terms
+    public Map<String, Map<String, Integer>> docsByTerm = new HashMap<>(); // key = term , value = { key = doc id , value = number of appearance in specific doc }
 
-    public static Parse[] allParsers (){
-        return parsers;
-    }
+    //docs
+    public Map<String, Map<String, Integer>> termsIndoc = new HashMap<>(); // key = doc id , value = <term, tf>
+
 
     //adding term after changing to lowercase/uppercase
-    private void directAddingTerm(String str, String docName){
-        synchronized (termsInCorpusMap) {
+    private void directAddingTerm(String str, String docName) {
+        if (docsByTerm.get(str) == null) {
+            Map<String, Integer> docs = new HashMap<>();
+            docs.put(docName, 1);
+            docsByTerm.put(str, docs);
+        } else {
+            if (docsByTerm.get(str).get(docName) == null)
+                docsByTerm.get(str).put(docName, 1);
+            else
+                docsByTerm.get(str).put(docName,docsByTerm.get(str).get(docName) + 1);
+
+        }
+        if (termsIndoc.get(docName) == null) {
+            Map<String, Integer> terms = new HashMap<>();
+            terms.put(str, 1);
+            termsIndoc.put(docName, terms);
+        }
+        else
+            if (termsIndoc.get(docName).get(str) == null)
+                termsIndoc.get(docName).put(str, 1);
+                else
+                    termsIndoc.get(docName).put(str,termsIndoc.get(docName).get(str) + 1);
+    }
+
+
+/*
+        if(termsInCorpus.get(docName) == null)
+        {
+            Map<String, Integer> map = new HashMap<>();
+            map.put(str,1);
+            termsInCorpus.put(docName,map);
+
+            // add the doc to doc_NumOfDiffrentTerms and initial the appearance to 1
+            doc_NumOfDiffrentTerms.put(docName,1);
+        }
+
+        else
+        {
+            if(termsInCorpus.get(docName).get(str) == null)
+                termsInCorpus.get(docName).put(str,1);
+
+        }
+
+
+
+
+        // add the terms to termByTf - terms , < doc id ,
+        if (termByTf.get(str) == null) { // if the term not in the Map
+            Map<String, Integer> map = new HashMap<>();
+            map.put(docName, 1);
+            termByTf.put(str, map);
+
+            // add the term to termByDf
+            termByDf.put(str,1);
+
+            // add the doc to doc_NumOfDiffrentTerms and initial the appearance to 1
+            if(doc_NumOfDiffrentTerms.get(docName)== null)
+                doc_NumOfDiffrentTerms.put(docName,1);
+            else
+                doc_NumOfDiffrentTerms.put(docName,doc_NumOfDiffrentTerms.get(docName) + 1);
+
+        } else  // if the term in the Map but the doc_name not in the internal map
+            if (termByTf.get(str).get(docName) == null)
+            {
+                termByTf.get(str).put(docName, 1);
+
+                // increase the number of appearance in different docs
+                termByDf.put(str,termByDf.get(str) + 1);
+
+                // add the doc to doc_NumOfDiffrentTerms and initial the appearance to 1
+                if(doc_NumOfDiffrentTerms.get(docName)== null)
+                    doc_NumOfDiffrentTerms.put(docName,1);
+                else
+                    doc_NumOfDiffrentTerms.put(docName,doc_NumOfDiffrentTerms.get(docName) + 1);
+
+            }
+            else // increase the appearance in termByTf
+                termByTf.get(str).put(str, termByTf.get(str).get(docName) + 1);
+*/
+
+
+     /*   synchronized (termsInCorpusMap) {
             if (termsInCorpusMap.get(str) == null) {
                 termsInCorpusMap.put(str, new TermInCorpus());
                 termsInDocMap.put(docName + str, new TermInDoc(docName,str));
@@ -42,7 +124,8 @@ public class Parse {
                 else termsInDocMap.get(docName + str).numberOfOccurencesInDoc++;
             }
         }
-    }
+        */
+
     private void addToterms(String str, String docName, boolean isNumber){
         if (str.length()>0){
             if (str.endsWith("'")) str = str.substring(0,str.length()-1);
@@ -52,44 +135,33 @@ public class Parse {
             directAddingTerm(str,docName);
         }
         else if (str.charAt(0) == str.toUpperCase().charAt(0)){
-            synchronized (termsInCorpusMap) {
-                if (termsInCorpusMap.get(str.toUpperCase()) != null) str = str.toUpperCase();
-                else if (termsInCorpusMap.get(str.toLowerCase()) != null) str = str.toLowerCase();
+
+                if (docsByTerm.get(str.toUpperCase()) != null) str = str.toUpperCase();
+                else if (docsByTerm.get(str.toLowerCase()) != null) str = str.toLowerCase();
                 else str = str.toUpperCase();
-            }
                 directAddingTerm(str,docName);
         }
         else if (str.matches(".*[a-z]+.*")) {
-            synchronized (termsInCorpusMap) {
-                if (termsInCorpusMap.get(str.toUpperCase()) != null) {
-                    termsInCorpusMap.put(str.toLowerCase(),termsInCorpusMap.remove(str.toUpperCase()));
-                    if (termsInDocMap.get(docName + str.toUpperCase()) != null){
-                        termsInDocMap.put(docName + str.toLowerCase(),termsInDocMap.remove(str.toUpperCase()));
+                if (docsByTerm.get(str.toUpperCase()) != null) {
+                    docsByTerm.put(str.toLowerCase(),docsByTerm.remove(str.toUpperCase()));
+                    if (termsIndoc.get(docName) != null){
+                        if(termsIndoc.get(docName).get(str.toUpperCase()) != null){
+                            termsIndoc.get(docName).put(str.toLowerCase(),termsIndoc.get(docName).remove(str.toUpperCase()));
+                        }
                     }
 
                 }
-            }
             directAddingTerm(str.toLowerCase(),docName);
         }
         else directAddingTerm(str,docName);
 
 
-
-
-
     }
-    public static void startSpecificParser(String doc, String docName, int numberOfThread,String path){
-        parsers[numberOfThread].parsingTextToText(doc,docName,numberOfThread,path);
-    }
+
+
+
     public static void startParser(int numberofThreads){
-        termsInCorpusMap = Collections.synchronizedMap(new HashMap<>());
 
-        stemmers = new Stemmer[numberofThreads];
-        parsers = new Parse[numberofThreads];
-        for (int i=0; i<37; i++){
-            stemmers[i] = new Stemmer();
-            parsers[i] = new Parse();
-        }
         months = new HashMap<>();
         numbersAsWords = new HashMap<>();
         stopWords = new HashSet<>();
@@ -502,7 +574,7 @@ public class Parse {
 
             }
             else{
-                addToterms(stemmers[numberOfThread].stemTerm(onlyTextFromDoc[i]), docName,false);
+                addToterms(stemmer.stemTerm(onlyTextFromDoc[i]), docName,false);
 
             }
             i += jumpToNextWord;
