@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 
 public class ReadFile implements Runnable {
 
+
+    public int numOfDocs=0;
     private long start;
     private long finish;
     private String path = "";
@@ -41,36 +43,105 @@ public class ReadFile implements Runnable {
     public void run() {
         finishReadingAllDocuments=false;
         start = System.nanoTime();
-        for (int i = jumping50; i < filesInFolder.size() && i < jumping50 + 50; i += 1){
+
+        for (int i=jumping50; i<filesInFolder.size() && i<jumping50+50; i++){
             try {
-                Document doc = Jsoup.parse(new String(Files.readAllBytes(filesInFolder.get(i).toPath())));
+                String currentFileInString = new String(Files.readAllBytes(filesInFolder.get(i).toPath()));
+                String tempForDoc = new String(currentFileInString);
+                Document doc = Jsoup.parse(tempForDoc);
                 Elements elements = doc.getElementsByTag("DOC");
-                //System.out.println(elements.size());
+                String path = filesInFolder.get(i).getPath();
+                int [] indexesOfCity = new int[0];
+                int [] indexesOfLanguage = new int [0];
+                int [] indexesOfDocs = new int [elements.size()];
+                if (currentFileInString.indexOf("<DOC>") != -1){
+                    int index = currentFileInString.indexOf("<DOC>");
+                    for (int currentDoc = 0; currentDoc<indexesOfDocs.length; currentDoc++){
+                        indexesOfDocs [currentDoc] = index;
+                        index = currentFileInString.indexOf("<DOC>", index + 1);
+                    }
+                }
+                if (currentFileInString.indexOf("<F P=104>") != -1){
+                    indexesOfCity = new int [elements.size()];
+                    int currentIndex = currentFileInString.indexOf("<F P=104>")+9;
+                    int indexOfIndexesOfCity=0;
+                    while (currentIndex >= 0 && indexOfIndexesOfCity < indexesOfCity.length) {
+                        if (indexOfIndexesOfCity<indexesOfCity.length-1 && indexesOfDocs[indexOfIndexesOfCity] < currentIndex && indexesOfDocs[indexOfIndexesOfCity+1] > currentIndex){
+                            indexesOfCity[indexOfIndexesOfCity] = currentIndex;
+                            currentIndex = currentFileInString.indexOf("<F P=104>", currentIndex + 1);
+                            if (currentIndex != -1) currentIndex = currentIndex+9;
+                        }
+                        else if (indexesOfDocs[indexOfIndexesOfCity] < currentIndex){
+                            indexesOfCity[indexOfIndexesOfCity] = currentIndex;
+                            currentIndex = currentFileInString.indexOf("<F P=104>", currentIndex + 1);
+                            if (currentIndex != -1) currentIndex = currentIndex+9;
+                        }
+                        indexOfIndexesOfCity++;
+                    }
+                }
+                if (currentFileInString.indexOf("<F P=105>") != -1){
+                    indexesOfLanguage = new int [elements.size()];
+                    int currentIndex = currentFileInString.indexOf("<F P=105>")+9;
+                    int indexOfIndexesOfLanguage=0;
+                    while (currentIndex >= 0 && indexOfIndexesOfLanguage < indexesOfLanguage.length) {
+                        if (indexOfIndexesOfLanguage<indexesOfLanguage.length-1 && indexesOfDocs[indexOfIndexesOfLanguage] < currentIndex && indexesOfDocs[indexOfIndexesOfLanguage+1] > currentIndex){
+                            indexesOfCity[indexOfIndexesOfLanguage] = currentIndex;
+                            currentIndex = currentFileInString.indexOf("<F P=105>", currentIndex + 1);
+                            if (currentIndex != -1) currentIndex = currentIndex+9;
+                        }
+                        else if (indexesOfDocs[indexOfIndexesOfLanguage] < currentIndex){
+                            indexesOfCity[indexOfIndexesOfLanguage] = currentIndex;
+                            currentIndex = currentFileInString.indexOf("<F P=105>", currentIndex + 1);
+                            if (currentIndex != -1) currentIndex = currentIndex+9;
+                        }
+                        indexOfIndexesOfLanguage++;
+                    }
+                }
+
+                int currentElement =0;
                 for (Element element:elements){
                     String s = element.children().toString();
                     String text = element.getElementsByTag("TEXT").text();
                     String name = element.getElementsByTag("DOCNO").text();
                     String city="";
                     String language="";
-                    int startOfCity = s.indexOf("<F P=104>");
-                    if (startOfCity != -1){
-                        boolean foundF = false;
-                        int y = startOfCity + 9;
-                        for (; !foundF; y++){
-                            if (s.charAt(y) == '<') foundF = true;
+                    if (indexesOfCity.length != 0){
+                        int index = indexesOfCity[currentElement];
+                        boolean foundFirstLetter = false;
+                        boolean foundLastLetter = false;
+                        int lastOfCity = 0;
+                        int startOfCity =0;
+                        for (; !foundFirstLetter || !foundLastLetter; index++){
+                            if(foundFirstLetter && (currentFileInString.charAt(index) >122 || currentFileInString.charAt(index) <65)  ){
+                                foundLastLetter = true;
+                                lastOfCity = index;
+                            }
+                            else if (!foundFirstLetter && currentFileInString.charAt(index) >=65 && currentFileInString.charAt(index) <=122 ){
+                                foundFirstLetter = true;
+                                startOfCity = index;
+                            }
                         }
-                        y -= 2;
-                        city = s.substring(startOfCity + 9 , y).split(" ")[1];
+                        city = currentFileInString.substring(startOfCity , lastOfCity).toUpperCase();
                     }
-                    int startOfLanguage = s.indexOf("<F P=105>");
-                    if (startOfLanguage != -1){
-                        boolean foundF = false;
-                        int y = startOfLanguage +9;
-                        for (; !foundF; y++){
-                            if (s.charAt(y) == '<') foundF = true;
+                    if (indexesOfCity.length != 0){
+                        int index = indexesOfLanguage[currentElement];
+                        boolean foundFirstLetter = false;
+                        boolean foundLastLetter = false;
+                        int lastOfLanguage = 0;
+                        int startOfLanguage =0;
+                        for (; !foundFirstLetter || !foundLastLetter; index++){
+                            if(foundFirstLetter && (currentFileInString.charAt(index) >122 || currentFileInString.charAt(index) <65)  ){
+                                foundLastLetter = true;
+                                lastOfLanguage = index;
+                            }
+                            else if (!foundFirstLetter && currentFileInString.charAt(index) >=65 && currentFileInString.charAt(index) <=122 ){
+                                foundFirstLetter = true;
+                                startOfLanguage = index;
+                            }
+
+
                         }
-                        y-=2;
-                        language = s.substring(startOfCity + 9 , y).split(" ")[1];
+                        language = currentFileInString.substring(startOfLanguage , lastOfLanguage).toUpperCase();
                     }
                     String headLine="";
                     String endOfPath = filesInFolder.get(i).getPath().substring(filesInFolder.get(i).getPath().lastIndexOf("\\")+1);
@@ -94,16 +165,15 @@ public class ReadFile implements Runnable {
                         String temp =  element.getElementsByTag("HEADLINE").text();
                         headLine = temp.substring(temp.indexOf('/')+1);
                     }
-                    text = headLine + "." + text;
+                    //text = headLine + "." + text;
                     documents.put(name, text );
                     stringBuilder.append("city:" + city + " " + "language:" + language + " " + "headLine:" + headLine +"\n");
-                    //Parse.startSpecificParser(s,name,threadNumber,l.getPath());
+                    currentElement++;
+                    numOfDocs++;
+
                 }
             }
             catch (IOException e){e.printStackTrace();}}
-        finish = System.nanoTime();
-        System.out.println((finish-start) * Math.pow(10,-9));
-        System.out.println(documents.size());
         finishReadingAllDocuments = true;
         jumping50 += 50;
     }
