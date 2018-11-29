@@ -1,8 +1,11 @@
 package sample;
 
+import javafx.util.Pair;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
@@ -10,55 +13,71 @@ import java.util.*;
 public class Parse {
 
 
-    public static Map<String, String> months;
-    public static Map<String, String> numbersAsWords;
-    public static HashSet<String> stopWords;
-    //  public static Map <String, TermInCorpus> termsInCorpusMap; //String=term
-    //  public Map <String,TermInDoc> termsInDocMap = new HashMap<>();//
-    public static Stemmer stemmer;
-    public int jumpToNextWord = 0;
+    private   Map<String, String> months;
+    private   HashSet<String> stopWords;
+    private int currentLine;
+    private Stemmer stemmer;
+    private int jumpToNextWord = 0;
+    public StringBuilder docInfo = new StringBuilder();
+    public Map<String, Map<String, Double>> docsByTerm = new HashMap<>(); // key = term , value = { key = doc id , value = number of appearance in specific doc . first appearence in doc }
+    public Map<String, Integer> termsIndoc = new HashMap<>();// key = doc id , value = <term, tf>
 
-    /// GAL
-    // terms
-    public Map<String, Map<String, Integer>> docsByTerm = new HashMap<>(); // key = term , value = { key = doc id , value = number of appearance in specific doc }
 
-    //docs
-    public Map<String, Map<String, Integer>> termsIndoc = new HashMap<>(); // key = doc id , value = <term, tf>
-
-    public void startParsing50Files(Map <String,String> mapOfDocs ){
+    /**
+     * get Map with 50 value -the map include key= name doc ,value= text of the doc
+     * the function send every doc to  parsingTextToText function.
+     * @param mapOfDocs
+     */
+    public void startParsing50Files(List<Pair <String, String>> mapOfDocs, boolean isStemming ){
+        docInfo = new StringBuilder();
+        for (int i=0; i<mapOfDocs.size(); i++){
+            Pair currentDoc = mapOfDocs.get(i);
+            String docName = (String)currentDoc.getKey();
+            String doc = (String)currentDoc.getValue();
+            parsingTextToText(doc,docName,isStemming);
+        }
+        /*
         for ( Map.Entry<String, String> entry : mapOfDocs.entrySet() ) {
             String docName = entry.getKey();
             String doc = entry.getValue();
-            parsingTextToText(doc,docName);
-        }
+            parsingTextToText(doc,docName,isStemming);
+        }*/
     }
-    //adding term after changing to lowercase/uppercase
+
+    /**
+     * Adding term to the maps(docsByTerm,termsIndoc) after changing to lowercase/uppercase
+     * @param str
+     * @param docName
+     */
     private void directAddingTerm(String str, String docName) {
         if (docsByTerm.get(str) == null) {
-            Map<String, Integer> docs = new HashMap<>();
-            docs.put(docName, 1);
+            Map<String, Double> docs = new HashMap<>();
+            docs.put(docName, Double.parseDouble("1." + String.valueOf(currentLine)+"1"));
             docsByTerm.put(str, docs);
         }
         else {
             if (docsByTerm.get(str).get(docName) == null)
-                docsByTerm.get(str).put(docName, 1);
-            else
-                docsByTerm.get(str).put(docName,docsByTerm.get(str).get(docName) + 1);
+                docsByTerm.get(str).put(docName, Double.parseDouble("1." + String.valueOf(currentLine)+"1"));
+            else{
+                Double doo = docsByTerm.get(str).get(docName) +1;
+                String doubledouble = new DecimalFormat("#.00").format(doo);
+                docsByTerm.get(str).put(docName,Double.parseDouble(String.valueOf(doubledouble)));
+                Double ddd = docsByTerm.get(str).get(docName);
+            }
+
 
         }
-        if (termsIndoc.get(docName) == null) {
-            Map<String, Integer> terms = new HashMap<>();
-            terms.put(str, 1);
-            termsIndoc.put(docName, terms);
-        }
-        else
-        if (termsIndoc.get(docName).get(str) == null)
-            termsIndoc.get(docName).put(str, 1);
-        else
-            termsIndoc.get(docName).put(str,termsIndoc.get(docName).get(str) + 1);
+        if (termsIndoc.get(str) == null) termsIndoc.put(str, 1);
+        else termsIndoc.put(str,termsIndoc.get(str) + 1);
+
     }
 
-
+    /**
+     * function that deal with lowercase/uppercase rules and send to directAddingTerm to add the term to the maps
+     * @param str
+     * @param docName
+     * @param isNumber
+     */
     private void addToterms(String str, String docName, boolean isNumber){
         if (str.length()>0){
             if (str.endsWith("'")) str = str.substring(0,str.length()-1);
@@ -67,7 +86,7 @@ public class Parse {
         if (isNumber) {
             directAddingTerm(str,docName);
         }
-        else if (str.charAt(0) == str.toUpperCase().charAt(0)){
+        else if (str.charAt(0)>=65 && str.charAt(0)<=90){
 
             if (docsByTerm.get(str.toUpperCase()) != null) str = str.toUpperCase();
             else if (docsByTerm.get(str.toLowerCase()) != null) str = str.toLowerCase();
@@ -78,27 +97,24 @@ public class Parse {
             if (docsByTerm.get(str.toUpperCase()) != null) {
                 docsByTerm.put(str.toLowerCase(),docsByTerm.remove(str.toUpperCase()));
                 if (termsIndoc.get(docName) != null){
-                    if(termsIndoc.get(docName).get(str.toUpperCase()) != null){
-                        termsIndoc.get(docName).put(str.toLowerCase(),termsIndoc.get(docName).remove(str.toUpperCase()));
+                    if(termsIndoc.get(str.toUpperCase()) != null){
+                        termsIndoc.put(str.toLowerCase(),termsIndoc.remove(str.toUpperCase()));
                     }
                 }
-
             }
             directAddingTerm(str.toLowerCase(),docName);
         }
-        else directAddingTerm(str,docName);
-        int x=0;
-
+        else return;
     }
 
 
-
-    public static void startParser(){
+    /**
+     * Start parser function - initialize the fields of the Parser class
+     */
+    public void startParser(){
         stemmer = new Stemmer();
         months = new HashMap<>();
-        numbersAsWords = new HashMap<>();
         stopWords = new HashSet<>();
-
         BufferedReader in = null;
         try{
             String currentWord;
@@ -114,17 +130,22 @@ public class Parse {
         catch (IOException e){
             System.out.println("IOException");
         }
-
         months.put("January", "01"); months.put("February", "02"); months.put("March", "03"); months.put("April", "04");months.put("May", "05");months.put("June", "06");months.put("July", "07");months.put("August", "08");months.put("September", "09");months.put("October", "10");months.put("November", "11");months.put("December", "12");
         months.put("JANUARY", "01"); months.put("FEBRUARY", "02"); months.put("MARCH", "03"); months.put("APRIL", "04");months.put("MAY", "05");months.put("JUNE", "06");months.put("JULY", "07");months.put("AUGUST", "08");months.put("SEPTEMBER", "09");months.put("OCTOBER", "10");months.put("NOVEMBER", "11");months.put("DECEMBER", "12");
         months.put("Jan", "01");     months.put("Feb", "02");      months.put("Mar", "03");   months.put("Apr", "04");  months.put("Jun", "06");months.put("Jul", "07");months.put("Aug", "08");months.put("Sep", "09");months.put("Oct", "10");months.put("Nov", "11");months.put("Dec", "12");
-
-
     }
 
+    /**
+     * Check if the string is number
+     * @param str
+     * @return number / null
+     */
     private Double isNumber (String str) {
         if (str.length() == 0) return null;
         else if (months.containsKey(str)) return Double.valueOf(months.get(str));
+        else if (str.equals("million") || str.equals("Million")) return 1000000.0;
+        else if (str.equals("billion") || str.equals("Billion")) return 1000000000.0;
+        else if (str.equals("trillion") || str.equals("Trillion")) return 1000000000000.0;
         if (!Character.isDigit(str.charAt(0))) return null;
         for (int i=1; i<str.length(); i++){
             if (!Character.isDigit(str.charAt(i)) && str.charAt(i) != ',' && str.charAt(i) != '.') return null;
@@ -142,12 +163,31 @@ public class Parse {
         }
     }
 
+    /**
+     * getting the number the properties that we take from the symbol that was part of the number and check the next words to identify the term
+     * @param docName
+     * @param number
+     * @param i
+     * @param length
+     * @param nextword
+     * @param onlyTextFromDoc
+     * @param isBillionAsWord
+     * @param isDollar
+     * @param percent
+     * @param fraction
+     * @param isBillion
+     * @param isMillion
+     * @param betweenAsWord
+     * @return
+     */
     private String dealWithNumbers(String docName,Double number, int i, int length, String nextword, String[]onlyTextFromDoc,
                                    boolean isBillionAsWord, boolean isDollar, String percent, String fraction, boolean isBillion, boolean isMillion, boolean betweenAsWord) {
         boolean isThousand = false;
         boolean isMillionAsWord = false;
         boolean isTrillion = false;
         boolean isDollarAsWord = false;
+        boolean isKilogram = false;
+        boolean isGram = false;
         //boolean isUS = false;
         //boolean isPercent = false;
         //boolean andAsWord = false;
@@ -178,6 +218,10 @@ public class Parse {
                     //andAsWord = true;
                     jumpToNextWord++;
                 }
+                else if(nextword.equals("kilogram") ||nextword.equals("Kilogram") ||nextword.equals("Kg") || nextword.equals("kg"))
+                    isKilogram = true;
+                else if(nextword.equals("Gram") ||nextword.equals("gram"))
+                    isGram = true;
                 else if (nextword.equals("Thousand") || nextword.equals("thousand")) {
                     isThousand = true;
                 } else if (nextword.equals("million") || nextword.equals("Million") || nextword.equals("m") || nextword.equals("M")) {
@@ -223,13 +267,35 @@ public class Parse {
         //if (!fraction.equals("")) jumpToNextWord+=1;
         //if (isUS) jumpToNextWord+=1;
         //if (andAsWord)jumpToNextWord+=1;
-        if (number != null) return between + (numberToTerm(number,(isDollar || isDollarAsWord),(isBillion || isBillionAsWord),(isMillion || isMillionAsWord),isTrillion,isThousand, percent, fraction)) + and + rightSide;
+        if (number != null) return between + (numberToTerm(number,(isDollar || isDollarAsWord),(isBillion || isBillionAsWord),(isMillion || isMillionAsWord),isTrillion,isThousand, percent, fraction,isKilogram,isGram)) + and + rightSide;
         else return "";
     }
 
-    private String numberToTerm (double number, boolean isDollar, boolean isBillion, boolean isMillion, boolean isTrillion, boolean isThousand, String percent, String fraction){
+    /**
+     * get the number with all his properties and chaining by the rules
+     * @param number
+     * @param isDollar
+     * @param isBillion
+     * @param isMillion
+     * @param isTrillion
+     * @param isThousand
+     * @param percent
+     * @param fraction
+     * @param isKilogram
+     * @param isGram
+     * @return number with chaining properties
+     */
+    private String numberToTerm (double number, boolean isDollar, boolean isBillion, boolean isMillion, boolean isTrillion, boolean isThousand, String percent, String fraction , boolean isKilogram, boolean isGram){
         String numberToReturn = "";
         String kmb = "";
+        String kg = "";
+        if(isGram)
+        {
+            number = number / 1000;
+            kg = " kg";
+        }
+        else if(isKilogram)
+            kg = " kg";
         if (isDollar){
             if (isTrillion){
                 number = number * 1000000;
@@ -283,15 +349,26 @@ public class Parse {
         }
         numberToReturn = Double.toString(number);
         numberToReturn = numberToReturn.indexOf(".") < 0 ? numberToReturn : numberToReturn.replaceAll("0*$", "").replaceAll("\\.$", "");
-        numberToReturn = numberToReturn +  fraction + kmb + percent ;
+        numberToReturn = numberToReturn +  fraction + kmb + percent + kg;
         if (isDollar) numberToReturn = numberToReturn + " Dollars";
         //if (numberToReturn.equals("780K") && terms.containsKey("780K")) System.out.println(terms.get("780K").numberOfOccurencesInDoc);
         return numberToReturn;
 
     }
 
-    public void parsingTextToText(String doc, String docName) {
+    /**
+     * main function that parse the doc
+     * @param doc
+     * @param docName
+     */
+    public void parsingTextToText(String doc, String docName, boolean isStemming) {
         //long start = System.nanoTime();
+        termsIndoc = new HashMap<>();
+        currentLine = 1;
+        if (doc.length()<=1){
+            docInfo.append(docName + ",,\n");
+            return;
+        }
         String [] onlyTextFromDoc = null;
         onlyTextFromDoc = doc.split(" ");
         boolean lastWord = false;
@@ -300,31 +377,66 @@ public class Parse {
             boolean isDollar = false;
             boolean isBillion = false;
             boolean isMillion = false;
-            boolean firstWord =false;
             String percent = "";
             String fraction = "";
             String nextword = "";
             Double number = null;
-            if (lastWord) firstWord=true;
-            lastWord=false;
-            while (onlyTextFromDoc[i].length()>0 && (onlyTextFromDoc[i].endsWith(",") || onlyTextFromDoc[i].endsWith(".") || onlyTextFromDoc[i].endsWith(":") || onlyTextFromDoc[i].endsWith(";") || onlyTextFromDoc[i].endsWith("-") || onlyTextFromDoc[i].endsWith("?") || onlyTextFromDoc[i].endsWith(")") || onlyTextFromDoc[i].endsWith(""+'"'+"") || onlyTextFromDoc[i].endsWith("]") || onlyTextFromDoc[i].endsWith("'"))) {
-                lastWord = true;
-                onlyTextFromDoc[i] = onlyTextFromDoc[i].substring(0, onlyTextFromDoc[i].length() - 1);
+
+            // help to deal with number of terms with capital letters
+            boolean firstword = false;
+            if(lastWord) {
+                firstword = true;
+                currentLine++;
             }
+            lastWord=false;
+
+            // remove delimiters from the last char
+            int currentIndexChar = onlyTextFromDoc[i].length()-1;
+            boolean wordHasChanged=false;
+            while (currentIndexChar >= 0 && !((onlyTextFromDoc[i].charAt(currentIndexChar) >= 65 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 90) || (onlyTextFromDoc[i].charAt(currentIndexChar) >= 97 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 122) || onlyTextFromDoc[i].charAt(currentIndexChar) == '%' )){
+                lastWord = true;
+                currentIndexChar--;
+                wordHasChanged =true;
+            }
+            if (currentIndexChar == -1) continue;
+            if (wordHasChanged){
+                onlyTextFromDoc[i] = onlyTextFromDoc[i].substring(0,currentIndexChar+1);
+            }
+
+
+            // remove delimiters from the first char
             if (i < length - 1 && (onlyTextFromDoc[i + 1].startsWith("(") || onlyTextFromDoc[i + 1].startsWith("" + '"' + "") || onlyTextFromDoc[i].startsWith("'"))) {
                 lastWord = true;
             }
-            while (onlyTextFromDoc[i].length()>0 && (onlyTextFromDoc[i].startsWith("(") || onlyTextFromDoc[i].startsWith(""+'"'+"") || onlyTextFromDoc[i].startsWith("'") ||  onlyTextFromDoc[i].startsWith("["))) {
-                onlyTextFromDoc[i] = onlyTextFromDoc[i].substring(1);
+            currentIndexChar = 0;
+            wordHasChanged=false;
+            while (currentIndexChar < onlyTextFromDoc[i].length() && !((onlyTextFromDoc[i].charAt(currentIndexChar) >= 65 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 90) || (onlyTextFromDoc[i].charAt(currentIndexChar) >= 97 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 122) || onlyTextFromDoc[i].charAt(currentIndexChar) == '$' )){//(onlyTextFromDoc[i].charAt(currentIndexChar) == '(' || onlyTextFromDoc[i].charAt(currentIndexChar) == '"' || onlyTextFromDoc[i].charAt(currentIndexChar) == '\'' ||  onlyTextFromDoc[i].charAt(currentIndexChar) == '[' || onlyTextFromDoc[i].charAt(currentIndexChar) == '/' || onlyTextFromDoc[i].charAt(currentIndexChar) == '\\')) {
+                currentIndexChar++;
+                wordHasChanged = true;
             }
+            if (currentIndexChar == onlyTextFromDoc[i].length()) continue;
+            if (wordHasChanged)
+                onlyTextFromDoc[i] = onlyTextFromDoc[i].substring(currentIndexChar);
+
+
+            // if the word is stop word continue to the next word
             if (stopWords.contains(onlyTextFromDoc[i])) continue;
             if (onlyTextFromDoc[i].contains("<") || onlyTextFromDoc[i].contains(">") || onlyTextFromDoc[i].equals(" ") || onlyTextFromDoc[i].length() == 0 || onlyTextFromDoc[i].equals("\n"))
                 continue;
             jumpToNextWord = 0;
             boolean isBillionAsWord = false;
+
+            //deal with range (xx-yy)
             if (onlyTextFromDoc[i].contains("-") && onlyTextFromDoc[i].charAt(0) != '-') {
                 String[] split = onlyTextFromDoc[i].split("-");
-                if (split.length == 2) {
+                if (split[1].equals("million") || split[1].equals("billion") || split[1].equals("Million") || split[1].equals("Billion") || split[1].equals("trillion")){
+                    if (split[0].charAt(0) == '$'){}
+                    else {
+                        dealWithMakaf(split,isDollar,onlyTextFromDoc,i,docName);
+                        continue;
+                    }
+                }
+                else if (split.length == 2) {
                     Double leftNumber = isNumber(split[0]);
                     Double rightNumber = isNumber(split[1]);
 
@@ -353,12 +465,16 @@ public class Parse {
                         addToterms(rightSide,docName,true);
                         addToterms(leftSide + "-" + rightSide, docName,true);
                     }
+                    continue;
 
                 }
                 else {
                     addToterms(onlyTextFromDoc[i], docName,false);
+                    continue;
                 }
-                continue;
+
+
+                //deal with date (xx-yy)
             } else if (months.containsKey(onlyTextFromDoc[i])) {
                 if (i < length - 1 && !lastWord) {
                     try {
@@ -374,15 +490,14 @@ public class Parse {
                         i++;
                         continue;
 
-                    } catch (NumberFormatException e) {
-
-                    }
+                    } catch (NumberFormatException e) { }
                 }
                 addToterms(months.get(onlyTextFromDoc[i]), docName,true);
                 continue;
 
             }
-            else if (onlyTextFromDoc[i].equals("between") || onlyTextFromDoc[i].equals("Between")) {
+            // deal with between range
+            else if ((onlyTextFromDoc[i].equals("between") || onlyTextFromDoc[i].equals("Between")) && i <length-1 ){
                 String finalTerm = dealWithNumbers(docName,isNumber(onlyTextFromDoc[i + 1]), i + 1, length,"", onlyTextFromDoc, false, false,"","", false, false, true);
                 if (finalTerm != "") {
                     i++;
@@ -396,15 +511,20 @@ public class Parse {
                         }
                     }
                 }
-
                 continue;
             }
 
-
+            // update the properies of the terms by characters that part of the terms like $ % bn m
             if (Character.isDigit(onlyTextFromDoc[i].charAt(0)) || onlyTextFromDoc[i].charAt(0) == '$') {
                 if (onlyTextFromDoc[i].charAt(0) == '$' && onlyTextFromDoc[i].length() > 1) {
                     isDollar = true;
                     onlyTextFromDoc[i] = onlyTextFromDoc[i].substring(1);
+                    if (onlyTextFromDoc[i].contains("-")) {
+                        String[] split = onlyTextFromDoc[i].split("-");
+                        dealWithMakaf(split, isDollar, onlyTextFromDoc, i, docName);
+                        continue;
+                    }
+
                 }
 
                 if (onlyTextFromDoc[i].endsWith("%") && onlyTextFromDoc[i].length() > 1) {
@@ -421,30 +541,75 @@ public class Parse {
                 else number = isNumber(onlyTextFromDoc[i]);
             }
             else number = isNumber(onlyTextFromDoc[i]);
+
+            // if its number send the number to deal with number and than add to terms
             if (number != null) {
                 if (!lastWord)
                     addToterms(dealWithNumbers(docName,number, i, length, nextword, onlyTextFromDoc, isBillionAsWord, isDollar, percent, fraction, isBillion, isMillion, false), docName,true);
                 else
-                    addToterms(numberToTerm(number, isDollar, isBillion, isMillion, false, false, percent, fraction), docName,true);
+                    addToterms(numberToTerm(number, isDollar, isBillion, isMillion, false, false, percent, fraction, false, false), docName,true);
 
             }
+
+            // if its not number check if its expression of capital leters
             else{
-                if (onlyTextFromDoc[i].charAt(0) == onlyTextFromDoc[i].toUpperCase().charAt(0) && !lastWord){
-                    while (!lastWord && i<length-1 ){
-                        i++;
-                        if (onlyTextFromDoc[i].charAt(0) == onlyTextFromDoc[i].toUpperCase().charAt(0)){
-
+                /*if (!firstword && onlyTextFromDoc[i].charAt(0) >= 65 && onlyTextFromDoc[i].charAt(0) <= 90 && !lastWord){
+                    String capitalLetters ="";
+                    boolean iGotBigger = false;
+                    int j=i;
+                    while (i<length && onlyTextFromDoc[i].charAt(0) >= 65 && onlyTextFromDoc[i].charAt(0) <= 90) {
+                        iGotBigger=false;
+                        if (onlyTextFromDoc[i].length() > 0 && (onlyTextFromDoc[i].endsWith(",") || onlyTextFromDoc[i].endsWith(".") || onlyTextFromDoc[i].endsWith(":") || onlyTextFromDoc[i].endsWith(";") || onlyTextFromDoc[i].endsWith("-") || onlyTextFromDoc[i].endsWith("?") || onlyTextFromDoc[i].endsWith(")") || onlyTextFromDoc[i].endsWith("" + '"' + "") || onlyTextFromDoc[i].endsWith("]") || onlyTextFromDoc[i].endsWith("'"))){
+                            if (j != i) capitalLetters += " " + onlyTextFromDoc[i].substring(0, onlyTextFromDoc[i].length() - 1);
+                            else capitalLetters += onlyTextFromDoc[i].substring(0, onlyTextFromDoc[i].length() - 1);
+                            break;
                         }
+                        if ( j!= i ) capitalLetters += " " + onlyTextFromDoc[i];
+                        else capitalLetters += onlyTextFromDoc[i];
+                        i++;
+                        iGotBigger = true;
                     }
-                }
+                    if (iGotBigger) i--;
+                    addToterms(capitalLetters,docName,false);
+                    continue;
+
+                }*/
+
+                // add the word to the terms after stemming
                 addToterms(stemmer.stemTerm(onlyTextFromDoc[i]), docName,false);
-
-
             }
             i += jumpToNextWord;
 
         }
 
+        // after parsed the doc calculate the term with max appearance and insert to docInfo map
+
+        int max =0;
+        try{
+        for (Integer Int:termsIndoc.values()){
+            if (Int > max) max = Int;
+        }}
+        catch (NullPointerException e){
+            System.out.println(docName);
+        }
+        docInfo.append(docName + "," + max + "," + termsIndoc.size() + "\n");
+
+
+    }
+    private void dealWithMakaf (String [] split, boolean isDollar,String [] onlyTextFromDoc, int i, String docName){
+        if (split.length==2){
+            Double leftSide = isNumber(split[0]);
+            if (leftSide != null){
+                if (split[1].equals("million") || split[1].equals("Million") ) addToterms(numberToTerm(leftSide,isDollar,false,true,false,false,"","",false,false),docName,true);
+                else if (split[1].equals("billion") || split[1].equals("Billion") ) addToterms(numberToTerm(leftSide,isDollar,true,false,false,false,"","",false,false),docName,true);
+                else if (split[1].equals("trillion") || split[1].equals("Trllion") )
+                    addToterms(numberToTerm(leftSide,isDollar,false,false,true,false,"","",false,false),docName,true);
+                else {
+                    addToterms(numberToTerm(leftSide,isDollar,false,false,false,false,"","",false,false),docName,true);
+                    addToterms(onlyTextFromDoc[i],docName,false);
+                }
+            }
+        }
     }
 
 

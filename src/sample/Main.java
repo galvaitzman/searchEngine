@@ -1,6 +1,9 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import sun.awt.Mutex;
@@ -9,60 +12,102 @@ import java.io.*;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 public class Main extends Application {
-    Map <String,Integer> termsInDocMap =new HashMap<>();
+    Map<String, Integer> termsInDocMap = new HashMap<>();
+    Stage primaryStage;
+
     @Override
-    public void start(Stage primaryStage) throws Exception{
-        //  String doc = "<TEXT>14 MAY May 14 June 4 August 4 May 1994 MAY 1994 1,000,000 Dollars $450,000,000 $100 million 20.6m Dollars $100 billion 100bn Dollars 100 billion U.S. dollars 320 million U.S. dollars 1 trillion U.S. dollars 450,000 Dollars $450,000.563636336000000 1.7320 Dollars 10.6 percent 10.6 percentage 10,123 123 Thousand 1010.56 10,123,000 55 Million 10,123,000,000 55 Billion 7 Trillion 22 3/4 Million U.S. Dollars   </TEXT>";
-        //  String doc = "<TEXT>1,000,000 Dollars $450,000,000 $100 million 20.6m Dollars $100 billion 100bn Dollars 100 billion U.S. dollars 320 million U.S. dollars 1 trillion U.S. dollars 450,000 Dollars $450,000.563636336000000 1.7320 Dollars 10.6 percent 10.6 percentage 10,123 123 Thousand 1010.56 10,123,000 55 Million 10,123,000,000 55 Billion 7 Trillion 22 3/4 Million U.S. Dollars   </TEXT>";
+    public void start(Stage primaryStage) throws Exception {
+    /*
+        this.primaryStage = primaryStage;
+        primaryStage.setTitle("Welcome to World-cup Maze");
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        Parent root = fxmlLoader.load(getClass().getResource("Sample.fxml").openStream());
+        Scene scene = new Scene(root, 800, 300);
+        // scene.getStylesheets().add(getClass().getResource("WelcomeStyle.css").toExternalForm());
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(false);
+        primaryStage.show();
+    }*/
+
+
         String doc = "<text>21-22 Jan 10% 10 percent 10 percentage between 1,000,000 and 2,000,000 10,123 123 Thousand 1010.56 10,123,000 55 Billion 7 Trillion 1.7320 Dollars 22 3/4 Dollars $450,000 1,000,000 Dollars " +
                 "$450,000,000 $100 Million 10.6m 20.6m Dollars $100 Billion 100bn Dollars 100 Billion U.S. Dollars 320 Million U.S. Dollars 1 trillion U.S. Dollars 18 April APRIL 18 Apr 18 Jun 1994 JUNE 1994 June 1994 between 1 million and 2 million</text>";
         Parse parser = new Parse();
-        Parse.startParser();
+        parser.startParser();
         ReadFile readFile = new ReadFile(System.getProperty("user.dir") + "/src/reasources/corpus");
-        Map <String,String> k = readFile.documents;
-        BufferedWriter bufferWriter1 = new BufferedWriter(new FileWriter(System.getProperty("user.dir") + "/src/reasources/docInfoCityLanguageHeadLine.txt"));
-        BufferedWriter bufferWriter2 = new BufferedWriter(new FileWriter(System.getProperty("user.dir") + "/src/reasources/docInfoFrequencyNumberOfUniqueWords.txt"));
-
+        List <Pair<String, String>> readyDocumentsFromReadFile = readFile.documents;
+        BufferedWriter bufferWriter1 = new BufferedWriter(new FileWriter(System.getProperty("user.dir") + "/src/reasources/docInfoCityLanguageHeadLine.txt",true));
+        BufferedWriter bufferWriter2 = new BufferedWriter(new FileWriter(System.getProperty("user.dir") + "/src/reasources/docInfoFrequencyNumberOfUniqueWords.txt",true));
         long strt = System.nanoTime();
-        parser.parsingTextToText("March 21","kjkl");
-        for (int i=0; i<readFile.filesInFolder.size()/50 + 1; i+=1) {
-
+        boolean isStemming = true;
+        Indexer indexer = new Indexer(System.getProperty("user.dir") + "/src/reasources/final posting");
+        int i=0;
+        for (; i < readFile.filesInFolder.size() / 50 + 1; i += 1) {
+            System.out.println(i + " start");
             readFile.run();
-            parser.startParsing50Files(readFile.documents);
-            long finish = System.nanoTime();
-            System.out.println( "time of running is:" + (finish-strt) * Math.pow(10,-9));
+            Thread t1 = new Thread(() -> {
+                try {
+                    bufferWriter1.write(readFile.stringBuilder.toString());
+                } catch (IOException e) {
+                }
+                System.out.println("finish writer1");
+            });
+            t1.start();
+
+            parser.startParsing50Files(readyDocumentsFromReadFile, isStemming);
+            readFile.documents.clear();
+            parser.termsIndoc.clear();
+            Thread t2 = new Thread(() -> {
+                try {
+                    bufferWriter2.write(parser.docInfo.toString());
+                } catch (IOException e) {
+                }
+                System.out.println("finish writer 2");
+            });
+            t2.start();
+
+            indexer.index50Files(parser.docsByTerm , i,System.getProperty("user.dir") + "/src/reasources/posting/");
+            parser.docsByTerm.clear();
+            //
+            //}
+            t1.join();
+            t2.join();
+            System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
         }
-           /*
-           Thread t1 = new Thread(()->{
-               try{ bufferWriter1.write(readFile.stringBuilder.toString()); }
-               catch (IOException e){}});
-           t1.start();
-           t1.join();*/
+        bufferWriter1.flush();
+        bufferWriter2.flush();
+        bufferWriter1.close();
+        bufferWriter2.close();
+        indexer.mergePost(System.getProperty("user.dir") + "/src/reasources/posting");
+        indexer.writeToFinalPosting(System.getProperty("user.dir") + "/src/reasources/posting");
+        indexer.writeDictionary(System.getProperty("user.dir") + "/src/reasources/dictionary.txt");
+        System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
 
-
-        //}
-
-
-        //System.out.println("G1GGG34324".matches(".*[a-z]+.*"));
-        //Parse[]p=Parse.allParsers();
-        //Parse p2 = new Parse();
-        //p2.parsingTextToText(doc,"bibi",0,"11");
-
-        //Thread.sleep(360000);
-        //Parse.termsInCorpusMap.forEach((key,value) -> System.out.println(key + ":" + value.numOfOccursInCorpus));
-        //Map <String, Map<String,TermInDoc>> m= p2.termsInDocMap;
-        //Map <String,TermInDoc> x = m.get("GONI");
-        //x.forEach((key,value) -> System.out.println(key + ":" + value.numberOfOccurencesInDoc));
+    }
 
 
 
-        //System.out.println("gal");
-        //finish = System.nanoTime();
-        //System.out.println((finish-start) * Math.pow(10,-9));
-        //finish = System.nanoTime();
-        //System.out.println( "time of running is:" + (finish-start) * Math.pow(10,-9));
+
+    //System.out.println("G1GGG34324".matches(".*[a-z]+.*"));
+    //Parse[]p=Parse.allParsers();
+    //Parse p2 = new Parse();
+    //p2.parsingTextToText(doc,"bibi",0,"11");
+
+    //Thread.sleep(360000);
+    //Parse.termsInCorpusMap.forEach((key,value) -> System.out.println(key + ":" + value.numOfOccursInCorpus));
+    //Map <String, Map<String,TermInDoc>> m= p2.termsInDocMap;
+    //Map <String,TermInDoc> x = m.get("GONI");
+    //x.forEach((key,value) -> System.out.println(key + ":" + value.numberOfOccurencesInDoc));
+
+
+    //System.out.println("gal");
+    //finish = System.nanoTime();
+    //System.out.println((finish-start) * Math.pow(10,-9));
+    //finish = System.nanoTime();
+    //System.out.println( "time of running is:" + (finish-start) * Math.pow(10,-9));
 
                 /*
         long start = System.nanoTime();
@@ -186,7 +231,7 @@ public class Main extends Application {
         finishTime = System.nanoTime()-startTime;
         System.out.println(finishTime * Math.pow(10,-9));*/
 
-    }
+
 
 
 

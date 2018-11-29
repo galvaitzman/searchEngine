@@ -1,8 +1,39 @@
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.GridPane?>
+<?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<GridPane fx:controller="sample.Controller"
-          xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10">
-</GridPane>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.MainViewController">
+    <children>
+        <ImageView fitHeight="300.0" fitWidth="800.0" pickOnBounds="true" AnchorPane.bottomAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <cursor>
+                <Cursor fx:constant="DEFAULT" />
+            </cursor>
+        </ImageView>
+        <Button layoutX="277.0" layoutY="339.0" mnemonicParsing="false" onAction="#NewGame" prefHeight="41.0" prefWidth="158.0" text="Create new maze" textOverrun="WORD_ELLIPSIS">
+            <font>
+                <Font name="Apple SD GothicNeo ExtraBold" size="13.0" />
+            </font></Button>
+        <Button layoutX="14.0" layoutY="339.0" mnemonicParsing="false" onAction="#About" prefHeight="41.0" prefWidth="158.0" text="Reset" textOverrun="WORD_ELLIPSIS">
+            <font>
+                <Font name="Apple SD GothicNeo ExtraBold" size="13.0" />
+            </font></Button>
+      <TextField layoutX="293.0" layoutY="60.0" />
+      <Text layoutX="180.0" layoutY="78.0" strokeType="OUTSIDE" strokeWidth="0.0" text="stop-word path" />
+      <TextField layoutX="293.0" layoutY="112.0" />
+      <Text layoutX="180.0" layoutY="130.0" strokeType="OUTSIDE" strokeWidth="0.0" text="path to save" />
+      <ChoiceBox layoutX="281.0" layoutY="236.0" prefHeight="27.0" prefWidth="167.0" />
+      <Text layoutX="180.0" layoutY="254.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Language" />
+      <ChoiceBox layoutX="280.0" layoutY="273.0" prefHeight="27.0" prefWidth="167.0" />
+      <Text layoutX="180.0" layoutY="291.0" strokeType="OUTSIDE" strokeWidth="0.0" text="City" />
+      <CheckBox layoutX="262.0" layoutY="175.0" mnemonicParsing="false" text="Stemming" />
+      <Text fill="#e41010" layoutX="291.0" layoutY="38.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Search Engine" textAlignment="CENTER" />
+    </children>
+</AnchorPane>
