@@ -31,23 +31,23 @@ public class Main extends Application {
         primaryStage.setResizable(false);
         primaryStage.show();
     }*/
-
-
-        String doc = "<text>21-22 Jan 10% 10 percent 10 percentage between 1,000,000 and 2,000,000 10,123 123 Thousand 1010.56 10,123,000 55 Billion 7 Trillion 1.7320 Dollars 22 3/4 Dollars $450,000 1,000,000 Dollars " +
-                "$450,000,000 $100 Million 10.6m 20.6m Dollars $100 Billion 100bn Dollars 100 Billion U.S. Dollars 320 Million U.S. Dollars 1 trillion U.S. Dollars 18 April APRIL 18 Apr 18 Jun 1994 JUNE 1994 June 1994 between 1 million and 2 million</text>";
-        Parse parser = new Parse();
-        parser.startParser();
-        ReadFile readFile = new ReadFile(System.getProperty("user.dir") + "/src/reasources/corpus");
-        List <Pair<String, String>> readyDocumentsFromReadFile = readFile.documents;
-        BufferedWriter bufferWriter1 = new BufferedWriter(new FileWriter(System.getProperty("user.dir") + "/src/reasources/docInfoCityLanguageHeadLine.txt",true));
-        BufferedWriter bufferWriter2 = new BufferedWriter(new FileWriter(System.getProperty("user.dir") + "/src/reasources/docInfoFrequencyNumberOfUniqueWords.txt",true));
-        long strt = System.nanoTime();
         boolean isStemming = true;
-        Indexer indexer = new Indexer(System.getProperty("user.dir") + "/src/reasources/final posting");
+        String corpusAndStopWordsPath = System.getProperty("user.dir") + "/src/reasources/corpus";
+        String postingAndDictionary = System.getProperty("user.dir") + "/src/reasources";
+        Parse parser = new Parse(corpusAndStopWordsPath,isStemming);
+        ReadFile readFile = new ReadFile(corpusAndStopWordsPath);
+        List <Pair<String, String>> readyDocumentsFromReadFile = readFile.documents;
+        BufferedWriter bufferWriter1 = new BufferedWriter(new FileWriter(postingAndDictionary + "/docInfoCityLanguageHeadLine.txt",true));
+        BufferedWriter bufferWriter2 = new BufferedWriter(new FileWriter(postingAndDictionary + "/docInfoFrequencyNumberOfUniqueWords.txt",true));
+        long strt = System.nanoTime();
+
+        Indexer indexer = new Indexer(postingAndDictionary);
+
+
         int i=0;
         for (; i < readFile.filesInFolder.size() / 50 + 1; i += 1) {
             System.out.println(i + " start");
-            readFile.run();
+            readFile.read();
             Thread t1 = new Thread(() -> {
                 try {
                     bufferWriter1.write(readFile.stringBuilder.toString());
@@ -57,7 +57,7 @@ public class Main extends Application {
             });
             t1.start();
 
-            parser.startParsing50Files(readyDocumentsFromReadFile, isStemming);
+            parser.startParsing50Files(readyDocumentsFromReadFile);
             readFile.documents.clear();
             parser.termsIndoc.clear();
             Thread t2 = new Thread(() -> {
@@ -69,21 +69,29 @@ public class Main extends Application {
             });
             t2.start();
 
-            indexer.index50Files(parser.docsByTerm , i,System.getProperty("user.dir") + "/src/reasources/posting/");
+            indexer.index50Files(parser.docsByTerm ,i);
             parser.docsByTerm.clear();
             //
             //}
             t1.join();
             t2.join();
             System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
-        }
+        } //5-6 minutes
         bufferWriter1.flush();
         bufferWriter2.flush();
         bufferWriter1.close();
         bufferWriter2.close();
-        indexer.mergePost(System.getProperty("user.dir") + "/src/reasources/posting");
-        indexer.writeToFinalPosting(System.getProperty("user.dir") + "/src/reasources/posting");
-        indexer.writeDictionary(System.getProperty("user.dir") + "/src/reasources/dictionary.txt");
+
+
+        indexer.mergePost("/big"); //8 seconds
+        System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
+        indexer.mergePost("/small");//40 seconds
+        System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
+        indexer.mergeBigWithSmall(); //15 sseconds
+        System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
+        indexer.writeToFinalPosting(); // 1 minute
+        System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
+        indexer.writeDictionary();//4 seconds
         System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
 
     }

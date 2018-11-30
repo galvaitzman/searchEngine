@@ -12,7 +12,7 @@ import java.util.*;
 
 public class Parse {
 
-
+    private String path;
     private   Map<String, String> months;
     private   HashSet<String> stopWords;
     private int currentLine;
@@ -21,14 +21,40 @@ public class Parse {
     public StringBuilder docInfo = new StringBuilder();
     public Map<String, Map<String, Double>> docsByTerm = new HashMap<>(); // key = term , value = { key = doc id , value = number of appearance in specific doc . first appearence in doc }
     public Map<String, Integer> termsIndoc = new HashMap<>();// key = doc id , value = <term, tf>
+    public boolean isStemming;
 
+    public Parse (String path , boolean isStemming){
+        this.path = path;
+        this.isStemming = isStemming;
+        stemmer = new Stemmer();
+        months = new HashMap<>();
+        stopWords = new HashSet<>();
+        BufferedReader in = null;
+        try{
+            String currentWord;
+            in = new BufferedReader(new FileReader(path + "/stop_words.txt"));
+            while ((currentWord = in.readLine())!= null )  {
+                stopWords.add(currentWord);
+                currentWord = currentWord.substring(0,1).toUpperCase() + currentWord.substring(1);
+                stopWords.add(currentWord);
+            }
+            stopWords.remove("between");
+            stopWords.remove("Between");
+        }
+        catch (IOException e){
+            System.out.println("IOException");
+        }
+        months.put("January", "01"); months.put("February", "02"); months.put("March", "03"); months.put("April", "04");months.put("May", "05");months.put("June", "06");months.put("July", "07");months.put("August", "08");months.put("September", "09");months.put("October", "10");months.put("November", "11");months.put("December", "12");
+        months.put("JANUARY", "01"); months.put("FEBRUARY", "02"); months.put("MARCH", "03"); months.put("APRIL", "04");months.put("MAY", "05");months.put("JUNE", "06");months.put("JULY", "07");months.put("AUGUST", "08");months.put("SEPTEMBER", "09");months.put("OCTOBER", "10");months.put("NOVEMBER", "11");months.put("DECEMBER", "12");
+        months.put("Jan", "01");     months.put("Feb", "02");      months.put("Mar", "03");   months.put("Apr", "04");  months.put("Jun", "06");months.put("Jul", "07");months.put("Aug", "08");months.put("Sep", "09");months.put("Oct", "10");months.put("Nov", "11");months.put("Dec", "12");
+    }
 
     /**
      * get Map with 50 value -the map include key= name doc ,value= text of the doc
      * the function send every doc to  parsingTextToText function.
      * @param mapOfDocs
      */
-    public void startParsing50Files(List<Pair <String, String>> mapOfDocs, boolean isStemming ){
+    public void startParsing50Files(List<Pair <String, String>> mapOfDocs){
         docInfo = new StringBuilder();
         for (int i=0; i<mapOfDocs.size(); i++){
             Pair currentDoc = mapOfDocs.get(i);
@@ -36,12 +62,7 @@ public class Parse {
             String doc = (String)currentDoc.getValue();
             parsingTextToText(doc,docName,isStemming);
         }
-        /*
-        for ( Map.Entry<String, String> entry : mapOfDocs.entrySet() ) {
-            String docName = entry.getKey();
-            String doc = entry.getValue();
-            parsingTextToText(doc,docName,isStemming);
-        }*/
+
     }
 
     /**
@@ -50,6 +71,7 @@ public class Parse {
      * @param docName
      */
     private void directAddingTerm(String str, String docName) {
+
         if (docsByTerm.get(str) == null) {
             Map<String, Double> docs = new HashMap<>();
             docs.put(docName, Double.parseDouble("1." + String.valueOf(currentLine)+"1"));
@@ -59,10 +81,11 @@ public class Parse {
             if (docsByTerm.get(str).get(docName) == null)
                 docsByTerm.get(str).put(docName, Double.parseDouble("1." + String.valueOf(currentLine)+"1"));
             else{
-                Double doo = docsByTerm.get(str).get(docName) +1;
-                String doubledouble = new DecimalFormat("#.00").format(doo);
-                docsByTerm.get(str).put(docName,Double.parseDouble(String.valueOf(doubledouble)));
-                Double ddd = docsByTerm.get(str).get(docName);
+                String [] splitDouble = String.valueOf(docsByTerm.get(str).get(docName)).split("\\.");
+                int leftSide = Integer.parseInt(splitDouble[0])+1;
+                Double doubleToPut = Double.parseDouble(String.valueOf(leftSide) + "." + splitDouble[1]);
+                docsByTerm.get(str).put(docName,doubleToPut);
+
             }
 
 
@@ -108,32 +131,8 @@ public class Parse {
     }
 
 
-    /**
-     * Start parser function - initialize the fields of the Parser class
-     */
-    public void startParser(){
-        stemmer = new Stemmer();
-        months = new HashMap<>();
-        stopWords = new HashSet<>();
-        BufferedReader in = null;
-        try{
-            String currentWord;
-            in = new BufferedReader(new FileReader(System.getProperty("user.dir") + "/src/reasources/stop_words.txt"));
-            while ((currentWord = in.readLine())!= null )  {
-                stopWords.add(currentWord);
-                currentWord = currentWord.substring(0,1).toUpperCase() + currentWord.substring(1);
-                stopWords.add(currentWord);
-            }
-            stopWords.remove("between");
-            stopWords.remove("Between");
-        }
-        catch (IOException e){
-            System.out.println("IOException");
-        }
-        months.put("January", "01"); months.put("February", "02"); months.put("March", "03"); months.put("April", "04");months.put("May", "05");months.put("June", "06");months.put("July", "07");months.put("August", "08");months.put("September", "09");months.put("October", "10");months.put("November", "11");months.put("December", "12");
-        months.put("JANUARY", "01"); months.put("FEBRUARY", "02"); months.put("MARCH", "03"); months.put("APRIL", "04");months.put("MAY", "05");months.put("JUNE", "06");months.put("JULY", "07");months.put("AUGUST", "08");months.put("SEPTEMBER", "09");months.put("OCTOBER", "10");months.put("NOVEMBER", "11");months.put("DECEMBER", "12");
-        months.put("Jan", "01");     months.put("Feb", "02");      months.put("Mar", "03");   months.put("Apr", "04");  months.put("Jun", "06");months.put("Jul", "07");months.put("Aug", "08");months.put("Sep", "09");months.put("Oct", "10");months.put("Nov", "11");months.put("Dec", "12");
-    }
+
+
 
     /**
      * Check if the string is number
@@ -351,7 +350,6 @@ public class Parse {
         numberToReturn = numberToReturn.indexOf(".") < 0 ? numberToReturn : numberToReturn.replaceAll("0*$", "").replaceAll("\\.$", "");
         numberToReturn = numberToReturn +  fraction + kmb + percent + kg;
         if (isDollar) numberToReturn = numberToReturn + " Dollars";
-        //if (numberToReturn.equals("780K") && terms.containsKey("780K")) System.out.println(terms.get("780K").numberOfOccurencesInDoc);
         return numberToReturn;
 
     }
@@ -362,7 +360,6 @@ public class Parse {
      * @param docName
      */
     public void parsingTextToText(String doc, String docName, boolean isStemming) {
-        //long start = System.nanoTime();
         termsIndoc = new HashMap<>();
         currentLine = 1;
         if (doc.length()<=1){
@@ -576,7 +573,8 @@ public class Parse {
                 }*/
 
                 // add the word to the terms after stemming
-                addToterms(stemmer.stemTerm(onlyTextFromDoc[i]), docName,false);
+                if (isStemming) addToterms(stemmer.stemTerm(onlyTextFromDoc[i]), docName,false);
+                else addToterms(onlyTextFromDoc[i],docName,false);
             }
             i += jumpToNextWord;
 

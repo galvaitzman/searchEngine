@@ -12,46 +12,9 @@ public class Indexer {
     Map <String,Integer> frequentOfTermInCorpus = new HashMap<>();
     int numOfDifferentPosting = 37; // based on the
     BufferedWriter [] bufferedWritersArray;
+    String path;
+    boolean thereIsNoProblemWithBigLetters = true;
 
-
-    long start = System.nanoTime();
-    BufferedWriter aBufferWriter;
-    BufferedWriter bBufferWriter;
-    BufferedWriter cBufferWriter;
-    BufferedWriter dBufferWriter;
-    BufferedWriter eBufferWriter;
-    BufferedWriter fBufferWriter;
-    BufferedWriter gBufferWriter;
-    BufferedWriter hBufferWriter;
-    BufferedWriter iBufferWriter;
-    BufferedWriter jBufferWriter;
-    BufferedWriter kBufferWriter;
-    BufferedWriter lBufferWriter;
-    BufferedWriter mBufferWriter;
-    BufferedWriter nBufferWriter;
-    BufferedWriter oBufferWriter;
-    BufferedWriter pBufferWriter;
-    BufferedWriter qBufferWriter;
-    BufferedWriter rBufferWriter;
-    BufferedWriter sBufferWriter;
-    BufferedWriter tBufferWriter;
-    BufferedWriter uBufferWriter;
-    BufferedWriter vBufferWriter;
-    BufferedWriter wBufferWriter;
-    BufferedWriter xBufferWriter;
-    BufferedWriter yBufferWriter;
-    BufferedWriter zBufferWriter;
-    BufferedWriter BufferWriter0;
-    BufferedWriter BufferWriter1;
-    BufferedWriter BufferWriter2;
-    BufferedWriter BufferWriter3;
-    BufferedWriter BufferWriter4;
-    BufferedWriter BufferWriter5;
-    BufferedWriter BufferWriter6;
-    BufferedWriter BufferWriter7;
-    BufferedWriter BufferWriter8;
-    BufferedWriter BufferWriter9;
-    BufferedWriter BufferWriter$;
 
     /**
      * initial bufferedWritersArray:
@@ -74,10 +37,10 @@ public class Indexer {
             }
             catch (IOException e){}
         }
-
+        this.path =path;
 
     }
-    public void index50Files(Map<String,Map<String,Double>> docsByTerm , int currentFileToWrite, String path){
+    public void index50Files(Map<String,Map<String,Double>> docsByTerm , int currentFileToWrite){
         for ( Map.Entry<String, Map<String,Double>> entry : docsByTerm.entrySet() ) {
             if(numberOfDocsPerTerm.containsKey(entry.getKey())){
                 numberOfDocsPerTerm.put(entry.getKey(),numberOfDocsPerTerm.get(entry.getKey()) + entry.getValue().size());
@@ -100,7 +63,7 @@ public class Indexer {
 
         TreeMap<String,Map<String, Double>> treeMap = new TreeMap<>(docsByTerm);
 
-
+        /*
         try {
             StringBuilder stringBuilder = new StringBuilder();
             BufferedWriter tempBufferWriter = new BufferedWriter(new FileWriter(path + currentFileToWrite + ".txt"));
@@ -116,22 +79,141 @@ public class Indexer {
             tempBufferWriter.close();
 
         }
+        catch (IOException e){}*/
+        try {
+            StringBuilder stringBuilderSmallLetters = new StringBuilder();
+            StringBuilder stringBuilderBigLetters = new StringBuilder();
+            BufferedWriter tempBufferWriterSmallLetters = new BufferedWriter(new FileWriter(path + "/small/" + currentFileToWrite + ".txt"));
+            BufferedWriter tempBufferWriterBigLetters = new BufferedWriter(new FileWriter(path + "/big/" + currentFileToWrite + ".txt"));
+
+            for ( Map.Entry<String, Map<String,Double>> entry : treeMap.entrySet() ) {
+                Map <String,Double> currentTermMap = entry.getValue();
+                for ( Map.Entry<String,Double> insideEntry : currentTermMap.entrySet() ) {
+                    String [] s = String.valueOf(insideEntry.getValue()).split("\\.");
+                    if (entry.getKey().charAt(0) <= 122 && entry.getKey().charAt(0)>=97) stringBuilderSmallLetters.append(entry.getKey() + "," + insideEntry.getKey() + "," + s[0] + "," + s[1].substring(0,s[1].length()-1) + "\n");
+                    else stringBuilderBigLetters.append(entry.getKey() + "," + insideEntry.getKey() + "," + s[0] + "," + s[1].substring(0,s[1].length()-1) + "\n");
+                }
+            }
+            tempBufferWriterSmallLetters.write(stringBuilderSmallLetters.toString());
+            tempBufferWriterSmallLetters.flush();
+            tempBufferWriterSmallLetters.close();
+            tempBufferWriterBigLetters.write(stringBuilderBigLetters.toString());
+            tempBufferWriterBigLetters.flush();
+            tempBufferWriterBigLetters.close();
+
+        }
         catch (IOException e){}
 
-        /*
-       */
+
 
     }
+    public void mergeBigWithSmall(){
+        List<File> filesInFolderSmallLetters = null;
+        try {
+            filesInFolderSmallLetters = Files.walk(Paths.get(path + "/small"))
+                    .filter(Files::isRegularFile)
+                    .map(Path::toFile)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+        }
+        List<File> filesInFolderBigLetters = null;
+        try {
+            filesInFolderBigLetters = Files.walk(Paths.get(path + "/big"))
+                    .filter(Files::isRegularFile)
+                    .map(Path::toFile)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+        }
+        boolean badFileFound = false;
+        for (int i = 0; i < filesInFolderSmallLetters.size() && !badFileFound; i++) {
+            if (filesInFolderSmallLetters.get(i).toString().endsWith("e")){
+                filesInFolderSmallLetters.remove(i);
+                badFileFound = true;
+            }
+        }
+        badFileFound = false;
+        for (int i = 0; i < filesInFolderBigLetters.size() && !badFileFound; i++) {
+            if (filesInFolderBigLetters.get(i).toString().endsWith("e")) {
+                filesInFolderBigLetters.remove(i);
+                badFileFound = true;
+            }
+        }
+        try {
+            BufferedReader br1 = new BufferedReader(new FileReader(filesInFolderSmallLetters.get(0)));
+            BufferedReader br2 = new BufferedReader(new FileReader(filesInFolderBigLetters.get(0)));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(path + "/mergedPosting.txt"));
+            String line1 = br1.readLine();
+            String line2 = br2.readLine();
+            List <String> listOfWordsThatShouldBeWithSmallLetters= new ArrayList<>();
+            while (line2 != null){
+                if (!line2.contains(",")) continue;
+                String currentTerm = "";
+                int i=0;
+                while (line2.charAt(i) !=  ',') {
+                    currentTerm += line2.charAt(i);
+                    i++;
+                }
+                if (currentTerm.charAt(0)<=90 && currentTerm.charAt(0) >= 65 &&  numberOfDocsPerTerm.containsKey(currentTerm.toLowerCase())){
+                    listOfWordsThatShouldBeWithSmallLetters.add(line2.toLowerCase());
+                    thereIsNoProblemWithBigLetters = false;
 
-    public void writeDictionary (String path){
+                }
+                else {
+                    bw.write(line2 + "\n");
+                }
+                line2 = br2.readLine();
+            }
+            if (thereIsNoProblemWithBigLetters){
+                    while (line1 != null) {
+                        bw.write(line1 +"\n");
+                        line1 = br1.readLine();
+                    }
+
+            }
+            else {
+                int i=0;
+                while (line1 != null) {
+                    if (i == listOfWordsThatShouldBeWithSmallLetters.size()) {
+                        bw.write(line1 +"\n");
+                        line1 = br1.readLine();
+                    }
+                    else if (listOfWordsThatShouldBeWithSmallLetters.get(i).compareTo(line1) < 0) {
+                        bw.write(listOfWordsThatShouldBeWithSmallLetters.get(i) + "\n");
+                        i++;
+                    }
+                    else {
+                        bw.write(line1 + "\n");
+                        line1 = br1.readLine();
+                    }
+                }
+            }
+            br1.close();
+            br2.close();
+            bw.flush();
+            bw.close();
+            }
+            catch (Exception e){}
+    }
+    public void writeDictionary (){
+        if (!thereIsNoProblemWithBigLetters){
+            Map <String,Integer> tempMap = new HashMap<>();
+            for (Map.Entry<String,Integer> insideEntry : numberOfDocsPerTerm.entrySet()){
+
+                if (insideEntry.getKey().charAt(0)<=90 && insideEntry.getKey().charAt(0)>=65 && numberOfDocsPerTerm.get(insideEntry.getKey().toLowerCase()) != null){
+                    Integer integerToAdd = numberOfDocsPerTerm.remove(insideEntry.getKey());
+                    numberOfDocsPerTerm.put(insideEntry.getKey().toLowerCase(),numberOfDocsPerTerm.get(insideEntry.getKey().toLowerCase()) + integerToAdd);
+                    integerToAdd = frequentOfTermInCorpus.remove(insideEntry.getKey());
+                    frequentOfTermInCorpus.put(insideEntry.getKey().toLowerCase(),frequentOfTermInCorpus.get(insideEntry.getKey().toLowerCase()) + integerToAdd);
+                }
+            }
+        }
         TreeMap<String,Integer> treeMapForDocsPerTerm = new TreeMap<>(numberOfDocsPerTerm);
         TreeMap<String,Integer> treeMapForfrequentOfTermInCorpus = new TreeMap<>(frequentOfTermInCorpus);
         numberOfDocsPerTerm.clear();
         frequentOfTermInCorpus.clear();
-
         try {
             StringBuilder stringBuilder = new StringBuilder();
-            BufferedWriter dictionaryBufferWriter = new BufferedWriter(new FileWriter(path));
+            BufferedWriter dictionaryBufferWriter = new BufferedWriter(new FileWriter(path + "/dictionary.txt"));
             int [] countersForEachLetter = new int[numOfDifferentPosting];
             for ( Map.Entry<String, Integer> entry : treeMapForDocsPerTerm.entrySet() ) {
                 int startingChar = entry.getKey().charAt(0);
@@ -149,15 +231,16 @@ public class Indexer {
         catch (IOException e){}
     }
 
-    public void mergePost(String path) {
+    public void mergePost(String smallOrBig) {
         List<File> filesInFolder = null;
         try {
-            filesInFolder = Files.walk(Paths.get(path))
+            filesInFolder = Files.walk(Paths.get(path + smallOrBig))
                     .filter(Files::isRegularFile)
                     .map(Path::toFile)
                     .collect(Collectors.toList());
         } catch (IOException e) {
         }
+
         int currentFileToWrite=0;
         while (filesInFolder.size() > 2) {
 
@@ -173,7 +256,7 @@ public class Indexer {
                 try {
                     BufferedReader br1 = new BufferedReader(new FileReader(filesInFolder.get(i)));
                     BufferedReader br2 = new BufferedReader(new FileReader(filesInFolder.get(i+1)));
-                    BufferedWriter bw = new BufferedWriter(new FileWriter(path + "/merged" + currentFileToWrite + ".txt"));
+                    BufferedWriter bw = new BufferedWriter(new FileWriter(path +smallOrBig +"/merged" + currentFileToWrite + ".txt"));
                     threadsArray[i/2] = new Thread(new WriteToMergePost(br1,br2,bw));
                 }
                 catch (Exception e){
@@ -197,7 +280,7 @@ public class Indexer {
             }
 
             try {
-                filesInFolder = Files.walk(Paths.get(path))
+                filesInFolder = Files.walk(Paths.get(path + smallOrBig))
                         .filter(Files::isRegularFile)
                         .map(Path::toFile)
                         .collect(Collectors.toList());
@@ -208,50 +291,17 @@ public class Indexer {
             System.out.println(currentFileToWrite);
         }
     }
-    /*public void sortPosting (){
-        try{
-        FileReader fileReader = new FileReader(System.getProperty("user.dir") + "/src/reasources/posting/0.txt");
-        BufferedReader bufferedReader = new BufferedReader(fileReader);
-        String inputLine;
-        List<String> lineList = new ArrayList<String>();
-        while ((inputLine = bufferedReader.readLine()) != null) {
-            lineList.add(inputLine);
-        }
-        fileReader.close();
 
-        Collections.sort(lineList);
 
-        FileWriter fileWriter = new FileWriter(System.getProperty("user.dir") + "/src/reasources/posting/41.txt");
-        PrintWriter out = new PrintWriter(fileWriter);
-        for (String outputLine : lineList) {
-            out.println(outputLine);
-        }
-        out.flush();
-        out.close();
-        fileWriter.close();}
-        catch (IOException e){}
-    }*/
-
-    public void writeToFinalPosting(String path){
-        int currentBufferWriter = 36;
+    public void writeToFinalPosting(){
+        int currentBufferWriter = 0;
         List<File> filesInFolder = null;
         BufferedReader br = null;
         try {
-            filesInFolder = Files.walk(Paths.get(path))
-                    .filter(Files::isRegularFile)
-                    .map(Path::toFile)
-                    .collect(Collectors.toList());
-            boolean badFileFound = false;
-            for (int i = 0; i < filesInFolder.size() && !badFileFound; i++) {
-                if (filesInFolder.get(i).toString().endsWith("e")){
-                    filesInFolder.remove(i);
-                    badFileFound = true;
-                }
-            }
-            br = new BufferedReader(new FileReader(filesInFolder.get(0)));
+            br = new BufferedReader(new FileReader(path + "/mergedPosting.txt"));
             String currentLine = br.readLine();
             String currentTerm = "";
-            String previosTerm = "";
+            String previosTerm;
             char delimiter = '~';
             int i;
             boolean firstletter = false;
