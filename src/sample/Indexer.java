@@ -196,6 +196,7 @@ public class Indexer {
     }
     public void writeDictionary (){
         if (!thereIsNoProblemWithBigLetters){
+            //
             Map <String,Integer> tempMap = new HashMap<>();
             for (Map.Entry<String,Integer> insideEntry : numberOfDocsPerTerm.entrySet()){
 
