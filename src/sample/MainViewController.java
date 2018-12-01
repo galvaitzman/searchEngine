@@ -2,19 +2,18 @@ package sample;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
 import javax.swing.text.html.ImageView;
 import java.awt.*;
 import java.io.File;
@@ -28,7 +27,9 @@ public class MainViewController extends Application{
     public TextField textBrowseStopWordAndCorpus;
     public TextField textPathToSave;
     public javafx.scene.control.CheckBox checkBoxStem;
-    public javafx.scene.image.ImageView imageView;
+    public ComboBox<String> comboBoxLanguage;
+
+
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -56,7 +57,10 @@ public class MainViewController extends Application{
 
     public void startBuild(ActionEvent actionEvent) {
 
-        main.startBuild(checkBoxStem.isSelected(),textBrowseStopWordAndCorpus.getText(),textPathToSave.getText());
+       main.startBuild(checkBoxStem.isSelected(),textBrowseStopWordAndCorpus.getText(),textPathToSave.getText());
+        ObservableList<String> data = FXCollections.observableArrayList(main.indexer.numberOfDocsPerTerm.keySet());
+        comboBoxLanguage.setItems(data);
+
     }
 
 
@@ -73,6 +77,19 @@ public class MainViewController extends Application{
         File selectedFile = dc.showDialog(primaryStage);
         if (selectedFile != null)
             textPathToSave.setText(selectedFile.getPath());
+    }
+
+    public void reset(ActionEvent actionEvent ){
+        File dir = new File(textPathToSave.getText());
+        File[] listFiles = dir.listFiles();
+        for(File file : listFiles){
+            if(file.isDirectory()){
+                File[] listFiles2 = file.listFiles();
+                for(File file2 : listFiles2)
+                    file2.delete();
+            }
+            file.delete();
+        }
     }
 
 

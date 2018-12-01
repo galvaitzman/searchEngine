@@ -32,7 +32,7 @@
             <font>
                 <Font size="16.0" />
             </font></Button>
-        <Button layoutX="185.0" layoutY="500.0" mnemonicParsing="false" onAction="#About" prefHeight="41.0" prefWidth="76.0" text="Reset" textOverrun="WORD_ELLIPSIS">
+        <Button id="ButtonReset" fx:id="ButtonReset" layoutX="185.0" layoutY="500.0" mnemonicParsing="false" onAction="#reset" prefHeight="41.0" prefWidth="76.0" text="Reset" textOverrun="WORD_ELLIPSIS">
             <font>
                 <Font size="16.0" />
             </font></Button>
@@ -87,6 +87,6 @@
             <Font size="16.0" />
          </font>
       </Button>
-      <ComboBox fx:id="comboBoxLangueue" layoutX="439.0" layoutY="402.0" prefWidth="150.0" />
+      <ComboBox fx:id="comboBoxLanguage" layoutX="439.0" layoutY="402.0" prefWidth="150.0" visibleRowCount="14" />
     </children>
 </AnchorPane>
