@@ -7,10 +7,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import sun.awt.Mutex;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,13 +21,15 @@ public class ReadFile {
 
 
     public int numOfDocs=0;
-    private long start;
-    private long finish;
-    private String path = "";
     public int jumping50=0;
-    List<File> filesInFolder = null;
-    public List<Pair <String, String>> documents = new ArrayList<>();
-    StringBuilder stringBuilder;
+    public  List<Pair <String, String>> documents = new ArrayList<>();
+    public  StringBuilder stringBuilder;
+    public  Map <String,String> detailsOfCities = new TreeMap<>();
+    public  Set<String> languages = new TreeSet<>();
+    private List<File> filesInFolder = null;
+    private String path;
+
+
     public ReadFile (String path){
         this.path=path;
         try {
@@ -47,16 +48,18 @@ public class ReadFile {
 
         }
     }
+    public void setCitiesList(){
+        for (int i=0; i<filesInFolder.size(); i++){
 
+        }
+    }
     public void read() {
-        start = System.nanoTime();
         stringBuilder = new StringBuilder();
         for (int i=jumping50; i<filesInFolder.size() && i<jumping50+50; i++){
             try {
                 String currentFileInString = new String(Files.readAllBytes(filesInFolder.get(i).toPath()));
                 Document doc = Jsoup.parse(currentFileInString);
                 Elements elements = doc.getElementsByTag("DOC");
-                String path = filesInFolder.get(i).getPath();
                 int [] indexesOfCity = new int[0];
                 int [] indexesOfLanguage = new int [0];
                 int [] indexesOfDocs = new int [elements.size()];
@@ -190,6 +193,131 @@ public class ReadFile {
             }
             catch (IOException e){e.printStackTrace();}}
         jumping50 += 50;
+    }
+
+    public void makeCityListAndLanguageList() {
+        Set<String> cities = new TreeSet<>();
+        for (int i=0; i<filesInFolder.size(); i++){
+            try {
+                String currentFileInString = new String(Files.readAllBytes(filesInFolder.get(i).toPath()));
+                Document doc = Jsoup.parse(currentFileInString);
+                Elements elements = doc.getElementsByTag("DOC");
+                int [] indexesOfCity = new int[0];
+                if (currentFileInString.indexOf("<F P=104>") != -1){
+                    indexesOfCity = new int [elements.size()];
+                    int currentIndex = currentFileInString.indexOf("<F P=104>")+9;
+                    int indexOfIndexesOfCity=1;
+                    indexesOfCity[0] = currentIndex;
+                    currentIndex = currentFileInString.indexOf("<F P=104>", currentIndex + 1);
+                    while (currentIndex != -1 && indexOfIndexesOfCity < indexesOfCity.length){
+                        indexesOfCity[indexOfIndexesOfCity] = currentIndex;
+                        currentIndex = currentFileInString.indexOf("<F P=104>", currentIndex + 1);
+                        indexOfIndexesOfCity++;
+                    }
+                }
+                int currentElement = 0;
+                if (indexesOfCity.length != 0){
+                    while (currentElement < indexesOfCity.length){
+                        String city="";
+                        int index = indexesOfCity[currentElement];
+                        if (index != 0){
+                            boolean foundFirstLetter = false;
+                            boolean foundLastLetter = false;
+                            int lastOfCity = 0;
+                            int startOfCity =0;
+                            for (; !foundFirstLetter || !foundLastLetter; index++){
+                                if(foundFirstLetter && (currentFileInString.charAt(index) >122 || currentFileInString.charAt(index) <65)  ){
+                                    foundLastLetter = true;
+                                    lastOfCity = index;
+                                }
+                                else if (!foundFirstLetter && currentFileInString.charAt(index) >=65 && currentFileInString.charAt(index) <=122 ){
+                                    foundFirstLetter = true;
+                                    startOfCity = index;
+                                }
+                            }
+                            city = currentFileInString.substring(startOfCity , lastOfCity).toUpperCase();
+                            if (city.length()>=2) cities.add(city);
+                        }
+                        currentElement++;
+                    }
+
+                }
+                int [] indexesOfLanguage = new int[0];
+                if (currentFileInString.indexOf("<F P=105>") != -1){
+                    indexesOfLanguage = new int [elements.size()];
+                    int currentIndex = currentFileInString.indexOf("<F P=105>")+9;
+                    int indexOfIndexesOfLanguage=1;
+                    indexesOfLanguage[0] = currentIndex;
+                    currentIndex = currentFileInString.indexOf("<F P=105>", currentIndex + 1);
+                    while (currentIndex != -1 && indexOfIndexesOfLanguage < indexesOfLanguage.length){
+                        indexesOfLanguage[indexOfIndexesOfLanguage] = currentIndex;
+                        currentIndex = currentFileInString.indexOf("<F P=105>", currentIndex + 1);
+                        indexOfIndexesOfLanguage++;
+                    }
+                }
+                currentElement = 0;
+                if (indexesOfLanguage.length != 0){
+                    while (currentElement < indexesOfLanguage.length){
+                        String language="";
+                        int index = indexesOfLanguage[currentElement];
+                        if (index != 0){
+                            boolean foundFirstLetter = false;
+                            boolean foundLastLetter = false;
+                            int lastOfLanguage = 0;
+                            int startOfLanguage =0;
+                            for (; !foundFirstLetter || !foundLastLetter; index++){
+                                if(foundFirstLetter && (currentFileInString.charAt(index) >122 || currentFileInString.charAt(index) <65)  ){
+                                    foundLastLetter = true;
+                                    lastOfLanguage = index;
+                                }
+                                else if (!foundFirstLetter && currentFileInString.charAt(index) >=65 && currentFileInString.charAt(index) <=122 ){
+                                    foundFirstLetter = true;
+                                    startOfLanguage = index;
+                                }
+                            }
+                            language= currentFileInString.substring(startOfLanguage , lastOfLanguage).toUpperCase();
+                            if (language.length()>=2) languages.add(language);
+                        }
+                        currentElement++;
+                    }
+
+                }
+
+
+            }
+            catch (IOException e){e.printStackTrace();}
+        }
+        for ( String s:cities ) {
+            try {
+                String urlString = "https://restcountries.eu/rest/v2/capital/" + s + "?fields=name;population;currencies";
+                URL url = new URL(urlString);
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("GET");
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuffer content = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
+                in.close();
+                String detailsOfCity = content.toString();
+                String currency = detailsOfCity.substring(detailsOfCity.indexOf("code")+7,detailsOfCity.indexOf("code")+10);
+                int indexOfCountry = detailsOfCity.lastIndexOf("name")+7;
+                while (detailsOfCity.charAt(indexOfCountry) != '"') indexOfCountry++;
+                String country = detailsOfCity.substring(detailsOfCity.lastIndexOf("name")+7,indexOfCountry);
+                int indexOfPopulation = detailsOfCity.indexOf("population")+12;
+                while (detailsOfCity.charAt(indexOfPopulation) != '}') indexOfPopulation++;
+                String population = detailsOfCity.substring(detailsOfCity.lastIndexOf("population")+12,indexOfPopulation);
+                con.disconnect();
+                //detailsOfCities.put(s,)
+            }
+            catch (Exception e) {
+            }
+        }
+
+
+
     }
 }
 
