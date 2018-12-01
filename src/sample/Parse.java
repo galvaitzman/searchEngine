@@ -18,12 +18,14 @@ public class Parse {
     private int currentLine;
     private Stemmer stemmer;
     private int jumpToNextWord = 0;
+    private Map<String,String> detailsOfCities;
     public StringBuilder docInfo = new StringBuilder();
     public Map<String, Map<String, Double>> docsByTerm = new HashMap<>(); // key = term , value = { key = doc id , value = number of appearance in specific doc . first appearence in doc }
     public Map<String, Integer> termsIndoc = new HashMap<>();// key = doc id , value = <term, tf>
     public boolean isStemming;
 
-    public Parse (String path , boolean isStemming){
+    public Parse (String path , boolean isStemming , Map<String,String> detailsOfCities){
+        this.detailsOfCities = detailsOfCities;
         this.path = path;
         this.isStemming = isStemming;
         stemmer = new Stemmer();
@@ -284,7 +286,7 @@ public class Parse {
      * @param isGram
      * @return number with chaining properties
      */
-    private String numberToTerm (double number, boolean isDollar, boolean isBillion, boolean isMillion, boolean isTrillion, boolean isThousand, String percent, String fraction , boolean isKilogram, boolean isGram){
+    public static String numberToTerm (double number, boolean isDollar, boolean isBillion, boolean isMillion, boolean isTrillion, boolean isThousand, String percent, String fraction , boolean isKilogram, boolean isGram){
         String numberToReturn = "";
         String kmb = "";
         String kg = "";
@@ -346,6 +348,7 @@ public class Parse {
                 kmb ="K";
             }
         }
+        number = Math.round(number*100.0)/100.0;
         numberToReturn = Double.toString(number);
         numberToReturn = numberToReturn.indexOf(".") < 0 ? numberToReturn : numberToReturn.replaceAll("0*$", "").replaceAll("\\.$", "");
         numberToReturn = numberToReturn +  fraction + kmb + percent + kg;

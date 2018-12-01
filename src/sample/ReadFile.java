@@ -1,11 +1,15 @@
 package sample;
 
 import javafx.util.Pair;
+import jdk.nashorn.internal.parser.JSONParser;
+import jdk.nashorn.internal.runtime.JSONFunctions;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import sun.awt.Mutex;
+import sun.tools.java.Environment;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -17,6 +21,8 @@ import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
+
 public class ReadFile {
 
 
@@ -26,11 +32,13 @@ public class ReadFile {
     public  StringBuilder stringBuilder;
     public  Map <String,String> detailsOfCities = new TreeMap<>();
     public  Set<String> languages = new TreeSet<>();
-    private List<File> filesInFolder = null;
+    public  List<File> filesInFolder = null;
     private String path;
 
 
     public ReadFile (String path){
+
+
         this.path=path;
         try {
             filesInFolder = Files.walk(Paths.get(path))
@@ -287,36 +295,60 @@ public class ReadFile {
             }
             catch (IOException e){e.printStackTrace();}
         }
-        for ( String s:cities ) {
-            try {
-                String urlString = "https://restcountries.eu/rest/v2/capital/" + s + "?fields=name;population;currencies";
-                URL url = new URL(urlString);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod("GET");
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                StringBuffer content = new StringBuffer();
-                while ((inputLine = in.readLine()) != null) {
-                    content.append(inputLine);
-                }
-                in.close();
-                String detailsOfCity = content.toString();
-                String currency = detailsOfCity.substring(detailsOfCity.indexOf("code")+7,detailsOfCity.indexOf("code")+10);
-                int indexOfCountry = detailsOfCity.lastIndexOf("name")+7;
-                while (detailsOfCity.charAt(indexOfCountry) != '"') indexOfCountry++;
-                String country = detailsOfCity.substring(detailsOfCity.lastIndexOf("name")+7,indexOfCountry);
-                int indexOfPopulation = detailsOfCity.indexOf("population")+12;
-                while (detailsOfCity.charAt(indexOfPopulation) != '}') indexOfPopulation++;
-                String population = detailsOfCity.substring(detailsOfCity.lastIndexOf("population")+12,indexOfPopulation);
-                con.disconnect();
-                //detailsOfCities.put(s,)
+
+        try {
+            String urlString = "https://restcountries.eu/rest/v2/all?fields=name;population;currencies;capital";
+            URL url = new URL(urlString);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer content = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
             }
-            catch (Exception e) {
+            in.close();
+            String detailsOfCity = content.toString();
+            int BracketCount = 0;
+            List<String> JsonItems = new ArrayList<>();
+            StringBuilder Json = new StringBuilder();
+            int currentCharIndex = 0;
+            for(char c:detailsOfCity.toCharArray())
+            {
+                if (currentCharIndex == 0 || currentCharIndex == detailsOfCity.length()-1){
+                    currentCharIndex++;
+                    continue;
+                }
+                if (c == '{')
+                    ++BracketCount;
+                else if (c == '}')
+                    --BracketCount;
+                Json.append(c);
+
+                if (BracketCount == 0 && c != ' ')
+                {
+                    if (!Json.toString().equals(","))JsonItems.add(Json.toString());
+                    Json = new StringBuilder();
+                }
+                currentCharIndex++;
+            }
+            ObjectMapper objectMapper = new ObjectMapper();
+            for (int i=0; i<JsonItems.size(); i++){
+                City city = objectMapper.readValue(JsonItems.get(i), City.class);
+                if (cities.contains(city.capital.toUpperCase())){
+                    detailsOfCities.put(city.capital.toUpperCase(),city.name + "," + city.currencies[3] + "," + Parse.numberToTerm(Double.parseDouble(city.population + ".0"),false,false,false,false,false,"","",false,false));
+                }
+            }
+            con.disconnect();
+        }
+        catch (Exception e) {
+        }
+        for (String s:cities){
+            if (detailsOfCities.get(s) == null){
+                detailsOfCities.put(s, ",,");
             }
         }
-
-
 
     }
 }

@@ -14,6 +14,8 @@ public class Indexer {
     BufferedWriter [] bufferedWritersArray;
     String path;
     boolean thereIsNoProblemWithBigLetters = true;
+    public TreeMap<String,Integer> treeMapForDocsPerTerm;
+    public TreeMap<String,Integer> treeMapForfrequentOfTermInCorpus;
 
 
     /**
@@ -38,6 +40,8 @@ public class Indexer {
             catch (IOException e){}
         }
         this.path =path;
+        new File("/path/directory").mkdirs();
+
 
     }
     public void index50Files(Map<String,Map<String,Double>> docsByTerm , int currentFileToWrite){
@@ -213,8 +217,8 @@ public class Indexer {
 
             }
         }
-        TreeMap<String,Integer> treeMapForDocsPerTerm = new TreeMap<>(numberOfDocsPerTerm);
-        TreeMap<String,Integer> treeMapForfrequentOfTermInCorpus = new TreeMap<>(frequentOfTermInCorpus);
+        treeMapForDocsPerTerm = new TreeMap<>(numberOfDocsPerTerm);
+        treeMapForfrequentOfTermInCorpus = new TreeMap<>(frequentOfTermInCorpus);
         numberOfDocsPerTerm.clear();
         frequentOfTermInCorpus.clear();
         try {
@@ -248,7 +252,7 @@ public class Indexer {
         }
 
         int currentFileToWrite=0;
-        while (filesInFolder.size() > 2) {
+        while (filesInFolder.size() > 1) {
 
             boolean badFileFound = false;
             for (int i = 0; i < filesInFolder.size() && !badFileFound; i++) {
@@ -257,6 +261,7 @@ public class Indexer {
                     badFileFound = true;
                 }
             }
+            if (filesInFolder.size() == 1) return;
             Thread[]threadsArray = new Thread[filesInFolder.size()/2];
             for (int i = 0; i < filesInFolder.size()-1; i+=2) {
                 try {
@@ -341,7 +346,6 @@ public class Indexer {
                 else if (startWithChar<=122 && startWithChar>=97){
                     if (!firstletter){
                         firstletter = true;
-                        System.out.println("start letters");
                     }
                     if (startWithChar-86 != currentBufferWriter){
                         bufferedWritersArray[currentBufferWriter].flush();
