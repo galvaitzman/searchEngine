@@ -197,15 +197,20 @@ public class Indexer {
     public void writeDictionary (){
         if (!thereIsNoProblemWithBigLetters){
             //
-            Map <String,Integer> tempMap = new HashMap<>();
-            for (Map.Entry<String,Integer> insideEntry : numberOfDocsPerTerm.entrySet()){
-
-                if (insideEntry.getKey().charAt(0)<=90 && insideEntry.getKey().charAt(0)>=65 && numberOfDocsPerTerm.get(insideEntry.getKey().toLowerCase()) != null){
-                    Integer integerToAdd = numberOfDocsPerTerm.remove(insideEntry.getKey());
-                    numberOfDocsPerTerm.put(insideEntry.getKey().toLowerCase(),numberOfDocsPerTerm.get(insideEntry.getKey().toLowerCase()) + integerToAdd);
-                    integerToAdd = frequentOfTermInCorpus.remove(insideEntry.getKey());
-                    frequentOfTermInCorpus.put(insideEntry.getKey().toLowerCase(),frequentOfTermInCorpus.get(insideEntry.getKey().toLowerCase()) + integerToAdd);
+            List <String> tempMapForBigLettersWhichSupposedToBeWithSmallLetters = new ArrayList<>();
+            for (Map.Entry<String,Integer> insideEntry : numberOfDocsPerTerm.entrySet()) {
+                if (insideEntry.getKey().charAt(0) <= 90 && insideEntry.getKey().charAt(0) >= 65 && numberOfDocsPerTerm.get(insideEntry.getKey().toLowerCase()) != null) {
+                    tempMapForBigLettersWhichSupposedToBeWithSmallLetters.add(insideEntry.getKey());
                 }
+            }
+            for (int i=0; i<tempMapForBigLettersWhichSupposedToBeWithSmallLetters.size(); i++) {
+                Integer addToDocs = numberOfDocsPerTerm.get(tempMapForBigLettersWhichSupposedToBeWithSmallLetters.get(i));
+                Integer addToCorpus = frequentOfTermInCorpus.get(tempMapForBigLettersWhichSupposedToBeWithSmallLetters.get(i));
+                numberOfDocsPerTerm.put(tempMapForBigLettersWhichSupposedToBeWithSmallLetters.get(i).toLowerCase(),numberOfDocsPerTerm.get(tempMapForBigLettersWhichSupposedToBeWithSmallLetters.get(i).toLowerCase()) + addToDocs);
+                frequentOfTermInCorpus.put(tempMapForBigLettersWhichSupposedToBeWithSmallLetters.get(i).toLowerCase(),frequentOfTermInCorpus.get(tempMapForBigLettersWhichSupposedToBeWithSmallLetters.get(i).toLowerCase()) + addToCorpus);
+                numberOfDocsPerTerm.remove(tempMapForBigLettersWhichSupposedToBeWithSmallLetters.get(i));
+                frequentOfTermInCorpus.remove(tempMapForBigLettersWhichSupposedToBeWithSmallLetters.get(i));
+
             }
         }
         TreeMap<String,Integer> treeMapForDocsPerTerm = new TreeMap<>(numberOfDocsPerTerm);
