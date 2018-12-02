@@ -39,104 +39,74 @@ public class Main extends Application {
 
     public void startBuild(boolean isStemming,String pathOfCorpusAndStopWord , String postingAndDictionary) {
 
-
-        readFile = new ReadFile(pathOfCorpusAndStopWord);
+        if (isStemming);
+        readFile = new ReadFile(pathOfCorpusAndStopWord,postingAndDictionary);
+        long strt = System.nanoTime();
         readFile.makeCityListAndLanguageList();
-        parser = new Parse(pathOfCorpusAndStopWord,isStemming,readFile.detailsOfCities);
+        System.out.println("make city and language:" + (System.nanoTime() - strt) * Math.pow(10, -9));
+        parser = new Parse(isStemming,readFile.cities,pathOfCorpusAndStopWord,postingAndDictionary);
         indexer = new Indexer(postingAndDictionary);
 
 
         List<Pair<String, String>> readyDocumentsFromReadFile = readFile.documents;
 
-        BufferedWriter bufferWriter1 = null;
+
+
         try {
-            bufferWriter1 = new BufferedWriter(new FileWriter(postingAndDictionary + "/docInfoCityLanguageHeadLine.txt",true));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        BufferedWriter bufferWriter2 = null;
-        try {
-            bufferWriter2 = new BufferedWriter(new FileWriter(postingAndDictionary + "/docInfoFrequencyNumberOfUniqueWords.txt",true));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        long strt = System.nanoTime();
+            BufferedWriter bufferWriter1 = new BufferedWriter(new FileWriter(postingAndDictionary + "/docInfoCityLanguageHeadLine.txt", true));
+            BufferedWriter bufferWriter2 = new BufferedWriter(new FileWriter(postingAndDictionary + "/docInfoFrequencyNumberOfUniqueWords.txt", true));
 
-        int i=0;
-        for (; i < readFile.filesInFolder.size() / 50 + 1; i += 1) {
-            System.out.println(i + " start");
-            readFile.read();
-            BufferedWriter finalBufferWriter = bufferWriter1;
-            Thread t1 = new Thread(() -> {
-                try {
-                    finalBufferWriter.write(readFile.stringBuilder.toString());
-                } catch (IOException e) {
-                }
-                System.out.println("finish writer1");
-            });
-            t1.start();
+            int i = 0;
+            for (; i < readFile.filesInFolder.size() / 50 + 1; i += 1) {
+                System.out.println(i + " start");
+                readFile.read();
 
-            parser.startParsing50Files(readyDocumentsFromReadFile);
-            readFile.documents.clear();
-            parser.termsIndoc.clear();
-            BufferedWriter finalBufferWriter1 = bufferWriter2;
-            Thread t2 = new Thread(() -> {
-                try {
-                    finalBufferWriter1.write(parser.docInfo.toString());
-                } catch (IOException e) {
-                }
-                System.out.println("finish writer 2");
-            });
-            t2.start();
+                Thread t1 = new Thread(() -> {
+                    try {
+                        bufferWriter1.write(readFile.stringBuilder.toString());
+                    } catch (IOException e) {
+                    }
+                });
+                t1.start();
 
-            indexer.index50Files(parser.docsByTerm ,i);
-            parser.docsByTerm.clear();
-            //
-            //}
-            try {
+                parser.startParsing50Files(readyDocumentsFromReadFile);
+                readFile.documents.clear();
+                parser.termsIndoc.clear();
+                Thread t2 = new Thread(() -> {
+                    try {
+                        bufferWriter2.write(parser.docInfo.toString());
+                    } catch (IOException e) {
+                    }
+
+                });
+                t2.start();
+
+                indexer.index50Files(parser.docsByTerm, i);
+                parser.docsByTerm.clear();
                 t1.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            try {
                 t2.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
-        } //5-6 minutes
-        try {
+                System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
+            } //5-6 minutes
             bufferWriter1.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             bufferWriter2.flush();
-        } catch (IOException e) {
-
-        }
-        try {
             bufferWriter1.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             bufferWriter2.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+            parser.makePostingForCities();
+            parser.cities.clear();
+            indexer.mergePost("/big"); //8 seconds
+            System.out.println("finish big letters" + (System.nanoTime() - strt) * Math.pow(10, -9));
+            indexer.mergePost("/small");//40 seconds
+            System.out.println("finish small letters" + (System.nanoTime() - strt) * Math.pow(10, -9));
+            indexer.mergeBigWithSmall(); //15 sseconds
+            System.out.println("finish merging small and big" + (System.nanoTime() - strt) * Math.pow(10, -9));
+            indexer.writeToFinalPosting(); // 1 minute
+            System.out.println("finish writing to 37 files" + (System.nanoTime() - strt) * Math.pow(10, -9));
+            indexer.writeDictionary();//4 seconds
+            System.out.println("finish write dictionary" + (System.nanoTime() - strt) * Math.pow(10, -9));
+
         }
+        catch (Exception e) {}
 
-
-        indexer.mergePost("/big"); //8 seconds
-        System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
-        indexer.mergePost("/small");//40 seconds
-        System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
-        indexer.mergeBigWithSmall(); //15 sseconds
-        System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
-        indexer.writeToFinalPosting(); // 1 minute
-        System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
-        indexer.writeDictionary();//4 seconds
-        System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
 
     }
 
