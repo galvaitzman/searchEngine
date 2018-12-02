@@ -32,7 +32,7 @@ public class Parse {
         stemmer = new Stemmer();
         months = new HashMap<>();
         stopWords = new HashSet<>();
-        BufferedReader in = null;
+        BufferedReader in = null;//
         try{
             String currentWord;
             in = new BufferedReader(new FileReader(pathOfCorpusAndStopWord + "/stop_words.txt"));
