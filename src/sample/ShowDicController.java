@@ -18,39 +18,23 @@ import java.io.IOException;
 import java.util.*;
 
 public class ShowDicController extends Application{
-
-    Main main = new Main();
-    Stage primaryStage;
     public TableView tableViewShowDic;
     public TableColumn colTerm;
     public TableColumn colTf;
 
-
     @Override
     public void start(Stage primaryStage) throws Exception {
-      /*  this.primaryStage = primaryStage;
-        primaryStage.setTitle("Serach engine");
-        FXMLLoader fxmlLoader = new FXMLLoader();
-        Parent root = fxmlLoader.load(getClass().getResource("sample.fxml").openStream());
-         Scene scene = new Scene(root, 800, 300);
-       // scene.getStylesheets().add(getClass().getResource("WelcomeStyle.css").toExternalForm());
-        primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
-        primaryStage.show();
-
-*/
-        //--------------
     }
 
-    public void showDic() throws IOException {
-        TreeMap<String,Integer> dic = main.indexer.treeMapForfrequentOfTermInCorpus;
-        colTerm.setCellValueFactory(new PropertyValueFactory<Term,String>("Term"));
+    public void showDic(Indexer indexer) throws IOException {
+        TreeMap<String,Integer> dic = indexer.treeMapForfrequentOfTermInCorpus;
+        colTerm.setCellValueFactory(new PropertyValueFactory<Term,String>("termName"));
 
-        colTerm.setCellValueFactory(new PropertyValueFactory<Term,Integer>("tf"));
+        colTerm.setCellValueFactory(new PropertyValueFactory<Term,Integer>("termTf"));
 
         for( Map.Entry<String,Integer> entry: dic.entrySet())
         {
-            String term =entry.getKey();
+            String term = entry.getKey();
             Integer tf= entry.getValue();
             Term t= new Term(term,tf);
             tableViewShowDic.getItems().add(t);

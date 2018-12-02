@@ -15,12 +15,15 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 public class MainViewController extends Application{
@@ -39,7 +42,6 @@ public class MainViewController extends Application{
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
     }
 
     public void loadDicToMemory(ActionEvent actionEvent) throws IOException {
@@ -50,15 +52,39 @@ public class MainViewController extends Application{
             alert.showAndWait();
             return;
         }
-        String delimiter = "\n";
-        Map<String, String> map = new HashMap<>();
-        try(Stream<String> lines = Files.lines(Paths.get(textPathToSave.getText()+"/dictionary.txt"))){
-            lines.filter(line -> line.contains(delimiter)).forEach(
-                    line -> map.putIfAbsent(line.split(delimiter)[0], line.split(delimiter)[1])
-            );
 
+
+        Map<String, Integer> map = new TreeMap<>();
+        BufferedReader br1 = new BufferedReader(new FileReader(textPathToSave.getText()+"/dictionary.txt"));
+        String line1 = br1.readLine();
+        while (line1 != null ) {
+            map.put(line1.split(",")[0],Integer.parseInt(line1.split(",")[1]));
+            line1= br1.readLine();
         }
-        System.out.println("gg");
+        main.indexer = new Indexer(textPathToSave.toString());
+        main.indexer.treeMapForfrequentOfTermInCorpus = (TreeMap)((map));
+
+        System.out.println("gal");
+
+
+
+
+
+
+
+
+
+   /*     try(Stream<String> lines = Files.lines(Paths.get(textPathToSave.getText()+"/dictionary.txt"))){
+            lines.filter(line -> line.contains(delimiter)).forEach(
+                    line -> map.putIfAbsent(line.split(delimiter)[0], Integer.parseInt(line.split(delimiter)[1]))
+            );
+            main.indexer = new Indexer(textPathToSave.toString());
+            main.indexer.treeMapForfrequentOfTermInCorpus = (TreeMap)((map));
+
+            System.out.println("gal");
+
+        }*/
+
     }
 
 
@@ -121,24 +147,14 @@ public class MainViewController extends Application{
 
 
     public void showDic(ActionEvent actionEvent) throws IOException {
-        /*
-        Stage s=new Stage();
-        Parent root = FXMLLoader.load(getClass().getResource("showDic.fxml"));
-        Scene scene = new Scene(root, 727, 618);
-        s.setScene(scene);
-        s.setTitle("Show dictionary");
-        s.setResizable(false);
-        s.sizeToScene();
-        s.show();
-*/
         FXMLLoader fxmlLoader =new FXMLLoader();
-        Parent root = fxmlLoader.load(getClass().getResource("showDic.fxml"));
+        Parent root = fxmlLoader.load(getClass().getResource("showDic.fxml").openStream());
         Stage stage =new Stage(StageStyle.DECORATED);
         stage.setTitle("Show dictionary");
         stage.setScene(new Scene(root));
         ShowDicController showDicController =fxmlLoader.getController();
         if(main.indexer.treeMapForfrequentOfTermInCorpus.size() != 0){
-            showDicController.showDic();
+            showDicController.showDic(main.indexer);
             stage.show();
         }
 
