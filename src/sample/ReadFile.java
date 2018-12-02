@@ -47,7 +47,7 @@ public class ReadFile {
                     .collect(Collectors.toList());
         }
 
-        catch (IOException e){}
+        catch (IOException e){}//
         for (int i=0; i<filesInFolder.size(); i++){
             if (filesInFolder.get(i).getPath().endsWith("stop_words.txt")){
                 filesInFolder.remove(i);

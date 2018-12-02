@@ -360,7 +360,7 @@ public class Parse {
                 kmb ="K";
             }
         }
-        number = Math.round(number*100.0)/100.0;
+        number = Math.round(number*100.0)/100.0;//
         numberToReturn = Double.toString(number);
         numberToReturn = numberToReturn.indexOf(".") < 0 ? numberToReturn : numberToReturn.replaceAll("0*$", "").replaceAll("\\.$", "");
         numberToReturn = numberToReturn +  fraction + kmb + percent + kg;

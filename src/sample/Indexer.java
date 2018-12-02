@@ -42,7 +42,7 @@ public class Indexer {
         this.path =path;
         new File(path + "/small").mkdirs();
         new File(path + "/big").mkdirs();
-        new File(path + "/cities");
+        new File(path + "/cities");//
 
 
     }
