@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.shape.*?>
 <?import javafx.scene.image.*?>
 <?import java.lang.*?>
 <?import javafx.scene.*?>
@@ -20,7 +21,7 @@
 
 <AnchorPane prefHeight="618.0" prefWidth="937.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.MainViewController">
     <children>
-        <ImageView fitHeight="690.0" fitWidth="1000.0" pickOnBounds="true" AnchorPane.bottomAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <ImageView fx:id="lableNumOFDoc" fitHeight="690.0" fitWidth="1000.0" pickOnBounds="true" AnchorPane.bottomAnchor="0.0" AnchorPane.topAnchor="0.0">
             <image>
                 <Image url="/reasources/photo.png" />
             </image>
@@ -28,23 +29,23 @@
                 <Cursor fx:constant="DEFAULT" />
             </cursor>
         </ImageView>
-        <Button layoutX="694.0" layoutY="500.0" mnemonicParsing="false" onAction="#NewGame" prefHeight="41.0" prefWidth="137.0" text="Show dictionary" textOverrun="WORD_ELLIPSIS">
+        <Button fx:id="buttonShowDic" layoutX="658.0" layoutY="568.0" mnemonicParsing="false" onAction="#showDic" prefHeight="41.0" prefWidth="224.0" text="Show dictionary" textOverrun="WORD_ELLIPSIS">
             <font>
                 <Font size="16.0" />
             </font></Button>
-        <Button id="ButtonReset" fx:id="ButtonReset" layoutX="185.0" layoutY="500.0" mnemonicParsing="false" onAction="#reset" prefHeight="41.0" prefWidth="76.0" text="Reset" textOverrun="WORD_ELLIPSIS">
+        <Button id="ButtonReset" fx:id="ButtonReset" layoutX="115.0" layoutY="568.0" mnemonicParsing="false" onAction="#reset" prefHeight="41.0" prefWidth="224.0" text="Reset" textOverrun="WORD_ELLIPSIS">
             <font>
                 <Font size="16.0" />
             </font></Button>
-      <TextField fx:id="textBrowseStopWordAndCorpus" layoutX="313.0" layoutY="134.0" prefHeight="39.0" prefWidth="330.0" />
-      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="134.0" layoutY="162.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="stop-word path">
+      <TextField fx:id="textBrowseStopWordAndCorpus" layoutX="385.0" layoutY="134.0" prefHeight="39.0" prefWidth="330.0" />
+      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="139.0" layoutY="162.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="Corpus and stop-word path">
          <font>
-            <Font name="System Bold" size="22.0" />
+            <Font name="System Bold" size="18.0" />
          </font></Text>
-      <TextField fx:id="textPathToSave" layoutX="313.0" layoutY="206.0" prefHeight="39.0" prefWidth="330.0" />
-      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="134.0" layoutY="234.0" strokeType="OUTSIDE" strokeWidth="0.0" text="path to save">
+      <TextField fx:id="textPathToSave" layoutX="385.0" layoutY="206.0" prefHeight="39.0" prefWidth="330.0" />
+      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="139.0" layoutY="234.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Path to save posting files">
          <font>
-            <Font name="System Bold" size="22.0" />
+            <Font name="System Bold" size="18.0" />
          </font>
          <stroke>
             <LinearGradient endX="1.0" endY="1.0">
@@ -54,39 +55,71 @@
                </stops>
             </LinearGradient>
          </stroke></Text>
-      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="312.0" layoutY="426.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Language">
+      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="352.0" layoutY="465.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Language">
          <font>
-            <Font name="System Bold" size="22.0" />
+            <Font name="System Bold" size="19.0" />
          </font></Text>
-      <CheckBox fx:id="checkBoxStem" layoutX="411.0" layoutY="254.0" mnemonicParsing="false" prefHeight="49.0" prefWidth="167.0" text="Stemming" textFill="WHITE" textOverrun="CENTER_WORD_ELLIPSIS">
+      <CheckBox fx:id="checkBoxStem" layoutX="435.0" layoutY="261.0" mnemonicParsing="false" prefHeight="49.0" prefWidth="167.0" text="Stemming" textFill="WHITE" textOverrun="CENTER_WORD_ELLIPSIS">
          <font>
-            <Font name="System Bold" size="22.0" />
+            <Font name="System Bold" size="19.0" />
          </font></CheckBox>
-      <Button layoutX="378.0" layoutY="500.0" mnemonicParsing="false" onAction="#NewGame" prefHeight="41.0" prefWidth="224.0" text="Load dictionary to memory " textOverrun="WORD_ELLIPSIS">
+      <Button fx:id="buttonLoaDicToMemory" layoutX="378.0" layoutY="568.0" mnemonicParsing="false" onAction="#loadDicToMemory" prefHeight="41.0" prefWidth="224.0" text="Load dictionary to memory " textOverrun="WORD_ELLIPSIS">
          <font>
             <Font size="16.0" />
          </font>
       </Button>
-      <Button id="BrowseStopWordAndCorpus" fx:id="BrowseStopWordAndCorpus" layoutX="646.0" layoutY="133.0" mnemonicParsing="false" onAction="#browse" prefHeight="41.0" prefWidth="76.0" text="Browse" textOverrun="WORD_ELLIPSIS">
+      <Button id="BrowseStopWordAndCorpus" fx:id="BrowseStopWordAndCorpus" layoutX="718.0" layoutY="133.0" mnemonicParsing="false" onAction="#browse" prefHeight="41.0" prefWidth="76.0" text="Browse" textOverrun="WORD_ELLIPSIS">
          <font>
             <Font size="16.0" />
          </font>
       </Button>
-      <Button id="BrowseStopWord" fx:id="BrowsePathToSave" layoutX="646.0" layoutY="205.0" mnemonicParsing="false" onAction="#browse2" prefHeight="41.0" prefWidth="76.0" text="Browse" textOverrun="WORD_ELLIPSIS">
+      <Button id="BrowseStopWord" fx:id="BrowsePathToSave" layoutX="718.0" layoutY="205.0" mnemonicParsing="false" onAction="#browse2" prefHeight="41.0" prefWidth="76.0" text="Browse" textOverrun="WORD_ELLIPSIS">
          <font>
             <Font size="16.0" />
          </font>
       </Button>
-      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="274.0" layoutY="80.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="Search engine">
+      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="252.0" layoutY="77.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="Search engine">
          <font>
-            <Font name="Comic Sans MS" size="60.0" />
+            <Font name="Comic Sans MS Bold Italic" size="70.0" />
          </font>
       </Text>
-      <Button id="buttonStart" layoutX="452.0" layoutY="336.0" mnemonicParsing="false" onAction="#startBuild" prefHeight="41.0" prefWidth="76.0" text="Start" textOverrun="WORD_ELLIPSIS">
+      <Button fx:id="buttonStart" layoutX="405.0" layoutY="310.0" mnemonicParsing="false" onAction="#startBuild" prefHeight="41.0" prefWidth="190.0" text="Start" textOverrun="WORD_ELLIPSIS">
          <font>
             <Font size="16.0" />
          </font>
       </Button>
-      <ComboBox fx:id="comboBoxLanguage" layoutX="439.0" layoutY="402.0" prefWidth="150.0" visibleRowCount="14" />
+      <ComboBox fx:id="comboBoxLanguage" layoutX="463.0" layoutY="444.0" prefWidth="150.0" visibleRowCount="14" />
+      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="67.0" layoutY="421.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="Number of docs">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Text>
+      <Text fx:id="lableNumberOfDoc" fill="WHITE" fontSmoothingType="LCD" layoutX="216.0" layoutY="420.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Text>
+      <Text fx:id="lableNumTerms" fill="WHITE" fontSmoothingType="LCD" layoutX="526.0" layoutY="420.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Text>
+      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="367.0" layoutY="421.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="Number of terms">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Text>
+      <Text fx:id="lableTime" fill="WHITE" fontSmoothingType="LCD" layoutX="776.0" layoutY="420.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Text>
+      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="715.0" layoutY="420.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="Time">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Text>
+      <Line fx:id="line1" endX="900.0" layoutX="102.0" layoutY="378.0" startX="-100.0" stroke="WHITE" strokeWidth="4.0" />
+      <Line fx:id="line2" endX="900.0" layoutX="103.0" layoutY="514.0" startX="-100.0" stroke="WHITE" strokeWidth="4.0" />
     </children>
 </AnchorPane>
