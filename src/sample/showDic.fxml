@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane prefHeight="690.0" prefWidth="621.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.showDicController">
+<AnchorPane prefHeight="690.0" prefWidth="621.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.ShowDicController">
     <children>
         <ImageView fitHeight="690.0" fitWidth="724.0" layoutY="-2.0" pickOnBounds="true" AnchorPane.bottomAnchor="2.0" AnchorPane.topAnchor="-2.0">
             <image>
@@ -24,8 +24,8 @@
       </Text>
       <TableView fx:id="tableViewShowDic" layoutX="150.0" layoutY="97.0" prefHeight="565.0" prefWidth="423.0">
         <columns>
-          <TableColumn prefWidth="211.0" />
-          <TableColumn prefWidth="211.0" />
+          <TableColumn fx:id="colTerm" prefWidth="211.0" />
+          <TableColumn fx:id="colTf" prefWidth="211.0" />
         </columns>
       </TableView>
     </children>
