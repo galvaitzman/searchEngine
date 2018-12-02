@@ -100,7 +100,7 @@ public class Indexer {
                     else stringBuilderBigLetters.append(entry.getKey() + "  " + insideEntry.getKey() + "  " + s[0] + "  " + s[1].substring(0,s[1].length()-1) + "\n");
                 }
             }
-            tempBufferWriterSmallLetters.write(stringBuilderSmallLetters.toString());
+            tempBufferWriterSmallLetters.write(stringBuilderSmallLetters.toString());//
             tempBufferWriterSmallLetters.flush();
             tempBufferWriterSmallLetters.close();
             tempBufferWriterBigLetters.write(stringBuilderBigLetters.toString());

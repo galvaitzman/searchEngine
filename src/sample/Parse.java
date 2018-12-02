@@ -138,7 +138,7 @@ public class Parse {
                         termsIndoc.put(str.toLowerCase(),termsIndoc.remove(str.toUpperCase()));
                     }
                 }
-            }
+            }//
             directAddingTerm(str.toLowerCase(),docName,currentIndexInDoc);
         }
         else return;
