@@ -97,7 +97,7 @@ public class Indexer {
                 for ( Map.Entry<String,Double> insideEntry : currentTermMap.entrySet() ) {
                     String [] s = String.valueOf(insideEntry.getValue()).split("\\.");
                     if (entry.getKey().charAt(0) <= 122 && entry.getKey().charAt(0)>=97) stringBuilderSmallLetters.append(entry.getKey() + "," + insideEntry.getKey() + "," + s[0] + "," + s[1].substring(0,s[1].length()-1) + "\n");
-                    else stringBuilderBigLetters.append(entry.getKey() + "," + insideEntry.getKey() + "," + s[0] + "," + s[1].substring(0,s[1].length()-1) + "\n");
+                    else stringBuilderBigLetters.append(entry.getKey() + "  " + insideEntry.getKey() + "  " + s[0] + "  " + s[1].substring(0,s[1].length()-1) + "\n");
                 }
             }
             tempBufferWriterSmallLetters.write(stringBuilderSmallLetters.toString());
@@ -238,6 +238,8 @@ public class Indexer {
                 stringBuilder.append(entry.getKey() + "," + entry.getValue().toString() + "," + treeMapForfrequentOfTermInCorpus.get(entry.getKey()) + "," + lineNUmber +"\n");
             }
             dictionaryBufferWriter.write(stringBuilder.toString());
+            dictionaryBufferWriter.flush();
+            dictionaryBufferWriter.close();
 
         }
         catch (IOException e){}
@@ -383,7 +385,7 @@ public class Indexer {
                         bufferedWritersArray[0].write(delimiter + currentLine.substring(i+1));
                     else
                         bufferedWritersArray[0].write("\n" + currentLine);
-                    //bufferedWritersArray[36].write(currentLine + "\n");
+
                 }
                 currentLine = br.readLine();
             }

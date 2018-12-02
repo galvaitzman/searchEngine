@@ -115,7 +115,7 @@ public class Parse {
      * @param docName
      * @param isNumber
      */
-    private void addToterms(String str, String docName, boolean isNumber,int currentIndexInDoc){
+    public void addToterms(String str, String docName, boolean isNumber,int currentIndexInDoc){
         if (str.length()>0){
             if (str.endsWith("'")) str = str.substring(0,str.length()-1);
         }
