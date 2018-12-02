@@ -40,7 +40,8 @@ public class Indexer {
             catch (IOException e){}
         }
         this.path =path;
-        new File("/path/directory").mkdirs();
+        new File(path + "/small").mkdirs();
+        new File(path + "/big").mkdirs();
 
 
     }
