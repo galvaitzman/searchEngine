@@ -8,6 +8,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.text.Text;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -16,8 +17,10 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javax.swing.text.html.ImageView;
 import java.awt.*;
+import java.awt.Label;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Optional;
 
 public class MainViewController extends Application{
@@ -28,8 +31,10 @@ public class MainViewController extends Application{
     public TextField textPathToSave;
     public javafx.scene.control.CheckBox checkBoxStem;
     public ComboBox<String> comboBoxLanguage;
-
-
+    public Button buttonStart;
+    public  Text lableNumberOfDoc;
+    public Text lableNumTerms;
+    public Text lableTime;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -56,11 +61,23 @@ public class MainViewController extends Application{
     }*/
 
     public void startBuild(ActionEvent actionEvent) {
+        long start = System.nanoTime();
+        if(textPathToSave.getText().equals("") || textBrowseStopWordAndCorpus.getText().equals("") )
+        {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Message");
+            alert.setContentText("Both of the path should be filled");
+            alert.showAndWait();
+            return;
+        }
 
-       main.startBuild(checkBoxStem.isSelected(),textBrowseStopWordAndCorpus.getText(),textPathToSave.getText());
-        ObservableList<String> data = FXCollections.observableArrayList(main.indexer.numberOfDocsPerTerm.keySet());
+        main.startBuild(checkBoxStem.isSelected(),textBrowseStopWordAndCorpus.getText(),textPathToSave.getText());
+        ObservableList<String> data = FXCollections.observableArrayList(main.readFile.languages);
         comboBoxLanguage.setItems(data);
 
+        lableTime.setText((System.nanoTime() - start) * Math.pow(10, -9)+"");
+        lableNumberOfDoc.setText(main.readFile.numOfDocs+"");
+        lableNumTerms.setText(main.indexer.treeMapForfrequentOfTermInCorpus.size()+"");
     }
 
 
@@ -80,6 +97,14 @@ public class MainViewController extends Application{
     }
 
     public void reset(ActionEvent actionEvent ){
+        if(textPathToSave.getText().equals(""))
+        {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Message");
+            alert.setContentText("The path to save the files need to fill");
+            alert.showAndWait();
+            return;
+        }
         File dir = new File(textPathToSave.getText());
         File[] listFiles = dir.listFiles();
         for(File file : listFiles){
@@ -93,32 +118,15 @@ public class MainViewController extends Application{
     }
 
 
-    public void NewGame(ActionEvent actionEvent) {
-        try {
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        main.start(new Stage());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }
-        catch (Exception e) {
-        }
+    public void showDic(ActionEvent actionEvent) throws IOException {
+        Stage s=new Stage();
+        Parent root = FXMLLoader.load(getClass().getResource("showDic.fxml"));
+        Scene scene = new Scene(root, 727, 618);
+        s.setScene(scene);
+        s.setTitle("Show dictionary");
+        s.setResizable(false);
+        s.sizeToScene();
+        s.show();
+
     }
-    public void exit(ActionEvent actionEvent) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK) {
-            primaryStage.setOnCloseRequest(e -> Platform.exit());
-            System.exit(0);
-        }
-    }
-
-
-
-
 }

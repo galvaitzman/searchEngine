@@ -28,11 +28,10 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
-        primaryStage.setTitle("Welcome to World-cup Maze");
+        primaryStage.setTitle("Search engine - Goni and Gal");
         FXMLLoader fxmlLoader = new FXMLLoader();
         Parent root = fxmlLoader.load(getClass().getResource("Sample.fxml").openStream());
         Scene scene = new Scene(root, 937, 618);
-     //   scene.getStylesheets().add(getClass().getResource("sample.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
@@ -40,8 +39,10 @@ public class Main extends Application {
 
     public void startBuild(boolean isStemming,String pathOfCorpusAndStopWord , String postingAndDictionary) {
 
-        parser = new Parse(pathOfCorpusAndStopWord,isStemming);
+
         readFile = new ReadFile(pathOfCorpusAndStopWord);
+        readFile.makeCityListAndLanguageList();
+        parser = new Parse(pathOfCorpusAndStopWord,isStemming,readFile.detailsOfCities);
         indexer = new Indexer(postingAndDictionary);
 
 
