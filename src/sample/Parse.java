@@ -2,9 +2,7 @@ package sample;
 
 import javafx.util.Pair;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -12,21 +10,24 @@ import java.util.*;
 
 public class Parse {
 
-    private String path;
+    private String pathOfCorpusAndStopWord;
+    private String postingAndDictionary;
     private   Map<String, String> months;
     private   HashSet<String> stopWords;
     private int currentLine;
     private Stemmer stemmer;
     private int jumpToNextWord = 0;
-    private Map<String,String> detailsOfCities;
+    private Set <String> citiesList;
     public StringBuilder docInfo = new StringBuilder();
     public Map<String, Map<String, Double>> docsByTerm = new HashMap<>(); // key = term , value = { key = doc id , value = number of appearance in specific doc . first appearence in doc }
     public Map<String, Integer> termsIndoc = new HashMap<>();// key = doc id , value = <term, tf>
     public boolean isStemming;
+    public Map<String,Map <String,String>> cities = new TreeMap<>(); // key = city , value = { key = doc id , value = indexes of city in doc }
 
-    public Parse (String path , boolean isStemming , Map<String,String> detailsOfCities){
-        this.detailsOfCities = detailsOfCities;
-        this.path = path;
+    public Parse (boolean isStemming , Set<String> citiesList, String pathOfCorpusAndStopWord, String postingAndDictionary ){
+        this.citiesList = citiesList;
+        this.pathOfCorpusAndStopWord = pathOfCorpusAndStopWord;
+        this.postingAndDictionary = postingAndDictionary;
         this.isStemming = isStemming;
         stemmer = new Stemmer();
         months = new HashMap<>();
@@ -34,7 +35,7 @@ public class Parse {
         BufferedReader in = null;
         try{
             String currentWord;
-            in = new BufferedReader(new FileReader(path + "/stop_words.txt"));
+            in = new BufferedReader(new FileReader(pathOfCorpusAndStopWord + "/stop_words.txt"));
             while ((currentWord = in.readLine())!= null )  {
                 stopWords.add(currentWord);
                 currentWord = currentWord.substring(0,1).toUpperCase() + currentWord.substring(1);
@@ -72,8 +73,19 @@ public class Parse {
      * @param str
      * @param docName
      */
-    private void directAddingTerm(String str, String docName) {
-
+    private void directAddingTerm(String str, String docName,int currentIndexInDoc) {
+        if(citiesList.contains(str)){
+            if (cities.get(str)  == null){
+                cities.put(str,new TreeMap<>());
+                cities.get(str).put(docName,String.valueOf(currentIndexInDoc));
+            }
+            else if (cities.get(str).get(docName) == null ){
+                cities.get(str).put(docName,String.valueOf(currentIndexInDoc));
+            }
+            else{
+                cities.get(str).put(docName, cities.get(str).get(docName) + "," + String.valueOf(currentIndexInDoc));
+            }
+        }
         if (docsByTerm.get(str) == null) {
             Map<String, Double> docs = new HashMap<>();
             docs.put(docName, Double.parseDouble("1." + String.valueOf(currentLine)+"1"));
@@ -103,20 +115,20 @@ public class Parse {
      * @param docName
      * @param isNumber
      */
-    private void addToterms(String str, String docName, boolean isNumber){
+    private void addToterms(String str, String docName, boolean isNumber,int currentIndexInDoc){
         if (str.length()>0){
             if (str.endsWith("'")) str = str.substring(0,str.length()-1);
         }
         if (str.length() == 0) return;
         if (isNumber) {
-            directAddingTerm(str,docName);
+            directAddingTerm(str,docName,currentIndexInDoc);
         }
         else if (str.charAt(0)>=65 && str.charAt(0)<=90){
 
             if (docsByTerm.get(str.toUpperCase()) != null) str = str.toUpperCase();
             else if (docsByTerm.get(str.toLowerCase()) != null) str = str.toLowerCase();
             else str = str.toUpperCase();
-            directAddingTerm(str,docName);
+            directAddingTerm(str,docName,currentIndexInDoc);
         }
         else if (str.matches(".*[a-z]+.*")) {
             if (docsByTerm.get(str.toUpperCase()) != null) {
@@ -127,7 +139,7 @@ public class Parse {
                     }
                 }
             }
-            directAddingTerm(str.toLowerCase(),docName);
+            directAddingTerm(str.toLowerCase(),docName,currentIndexInDoc);
         }
         else return;
     }
@@ -247,7 +259,7 @@ public class Parse {
 
                 } else if (months.containsKey(nextword)) {
                     try {
-                        addToterms(months.get(nextword),docName,true);
+                        addToterms(months.get(nextword),docName,true,-1);
                         if (number >= 1 && number <= 31) {
                             jumpToNextWord+=1;
                             if (number>=1 && number<=9) return months.get(nextword) + "-0" + String.valueOf(number.intValue());
@@ -444,15 +456,15 @@ public class Parse {
                     String rightSide = split[1];
                     if (leftNumber != null && !lastWord) {
                         leftSide = dealWithNumbers(docName,leftNumber, i, length, "", onlyTextFromDoc, false, false, "", "", false, false, false);
-                        addToterms(leftSide, docName,true);
+                        addToterms(leftSide, docName,true,-1);
                     }
                     if (rightNumber != null && !lastWord) {
                         rightSide = dealWithNumbers(docName,rightNumber, i, length, "", onlyTextFromDoc, false, false, "", "", false, false, false);
-                        addToterms(rightSide, docName,true);
+                        addToterms(rightSide, docName,true,-1);
                     }
 
                     if (!leftSide.contains("-") && !rightSide.contains("-")) {
-                        addToterms(leftSide + "-" + rightSide,docName,true);
+                        addToterms(leftSide + "-" + rightSide,docName,true,-1);
                     }
                     else if (leftNumber != null && rightNumber != null) {
                         jumpToNextWord = jumpToNextWord/2;
@@ -461,15 +473,15 @@ public class Parse {
                         else leftSide = leftSide.substring(leftSide.lastIndexOf("-")+1);
                         if (rightSide.contains("0")) rightSide = rightSide.substring(rightSide.lastIndexOf("0")+1);
                         else rightSide = rightSide.substring(rightSide.lastIndexOf("-")+1);
-                        addToterms(leftSide,docName,true);
-                        addToterms(rightSide,docName,true);
-                        addToterms(leftSide + "-" + rightSide, docName,true);
+                        addToterms(leftSide,docName,true,-1);
+                        addToterms(rightSide,docName,true,-1);
+                        addToterms(leftSide + "-" + rightSide, docName,true,-1);
                     }
                     continue;
 
                 }
                 else {
-                    addToterms(onlyTextFromDoc[i], docName,false);
+                    addToterms(onlyTextFromDoc[i], docName,false,-1);
                     continue;
                 }
 
@@ -486,13 +498,13 @@ public class Parse {
                                 onlyTextFromDoc[i] = months.get(onlyTextFromDoc[i]) + "-" + String.valueOf(dayOrYear);
                         } else
                             onlyTextFromDoc[i] = String.valueOf(dayOrYear) + "-" + months.get(onlyTextFromDoc[i]);
-                        addToterms(onlyTextFromDoc[i], docName,true);
+                        addToterms(onlyTextFromDoc[i], docName,true,-1);
                         i++;
                         continue;
 
                     } catch (NumberFormatException e) { }
                 }
-                addToterms(months.get(onlyTextFromDoc[i]), docName,true);
+                addToterms(months.get(onlyTextFromDoc[i]), docName,true,-1);
                 continue;
 
             }
@@ -502,12 +514,12 @@ public class Parse {
                 if (finalTerm != "") {
                     i++;
                     i += jumpToNextWord;
-                    addToterms(finalTerm,docName,true);
+                    addToterms(finalTerm,docName,true,-1);
                     if (finalTerm.contains("-")){
                         String[] split = finalTerm.split("-");
                         if (split.length == 2){
-                            addToterms(split[0],docName,true);
-                            addToterms(split[1],docName,true);
+                            addToterms(split[0],docName,true,-1);
+                            addToterms(split[1],docName,true,-1);
                         }
                     }
                 }
@@ -545,9 +557,9 @@ public class Parse {
             // if its number send the number to deal with number and than add to terms
             if (number != null) {
                 if (!lastWord)
-                    addToterms(dealWithNumbers(docName,number, i, length, nextword, onlyTextFromDoc, isBillionAsWord, isDollar, percent, fraction, isBillion, isMillion, false), docName,true);
+                    addToterms(dealWithNumbers(docName,number, i, length, nextword, onlyTextFromDoc, isBillionAsWord, isDollar, percent, fraction, isBillion, isMillion, false), docName,true,-1);
                 else
-                    addToterms(numberToTerm(number, isDollar, isBillion, isMillion, false, false, percent, fraction, false, false), docName,true);
+                    addToterms(numberToTerm(number, isDollar, isBillion, isMillion, false, false, percent, fraction, false, false), docName,true,-1);
 
             }
 
@@ -576,8 +588,8 @@ public class Parse {
                 }*/
 
                 // add the word to the terms after stemming
-                if (isStemming) addToterms(stemmer.stemTerm(onlyTextFromDoc[i]), docName,false);
-                else addToterms(onlyTextFromDoc[i],docName,false);
+                if (isStemming) addToterms(stemmer.stemTerm(onlyTextFromDoc[i]), docName,false,i);
+                else addToterms(onlyTextFromDoc[i],docName,false,i);
             }
             i += jumpToNextWord;
 
@@ -601,16 +613,32 @@ public class Parse {
         if (split.length==2){
             Double leftSide = isNumber(split[0]);
             if (leftSide != null){
-                if (split[1].equals("million") || split[1].equals("Million") ) addToterms(numberToTerm(leftSide,isDollar,false,true,false,false,"","",false,false),docName,true);
-                else if (split[1].equals("billion") || split[1].equals("Billion") ) addToterms(numberToTerm(leftSide,isDollar,true,false,false,false,"","",false,false),docName,true);
+                if (split[1].equals("million") || split[1].equals("Million") ) addToterms(numberToTerm(leftSide,isDollar,false,true,false,false,"","",false,false),docName,true,-1);
+                else if (split[1].equals("billion") || split[1].equals("Billion") ) addToterms(numberToTerm(leftSide,isDollar,true,false,false,false,"","",false,false),docName,true,-1);
                 else if (split[1].equals("trillion") || split[1].equals("Trllion") )
-                    addToterms(numberToTerm(leftSide,isDollar,false,false,true,false,"","",false,false),docName,true);
+                    addToterms(numberToTerm(leftSide,isDollar,false,false,true,false,"","",false,false),docName,true,-1);
                 else {
-                    addToterms(numberToTerm(leftSide,isDollar,false,false,false,false,"","",false,false),docName,true);
-                    addToterms(onlyTextFromDoc[i],docName,false);
+                    addToterms(numberToTerm(leftSide,isDollar,false,false,false,false,"","",false,false),docName,true,-1);
+                    addToterms(onlyTextFromDoc[i],docName,false,-1);
                 }
             }
         }
+    }
+
+    public void makePostingForCities(){
+        try {
+            BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(postingAndDictionary + "/citiesPosting.txt", true));
+
+            for ( Map.Entry<String, Map<String,String>> entry : cities.entrySet() ) {
+                for ( Map.Entry<String,String> insideEntry : entry.getValue().entrySet() ) {
+                    bufferWriter.write(insideEntry.getKey() + "," + insideEntry.getValue() + "~");
+                }
+                bufferWriter.write("\n");
+            }
+            bufferWriter.flush();
+            bufferWriter.close();
+        }
+        catch (Exception e){}
     }
 
 

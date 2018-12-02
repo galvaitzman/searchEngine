@@ -42,6 +42,7 @@ public class Indexer {
         this.path =path;
         new File(path + "/small").mkdirs();
         new File(path + "/big").mkdirs();
+        new File(path + "/cities");
 
 
     }
@@ -285,7 +286,7 @@ public class Indexer {
                 }
                 catch (InterruptedException e){}
             }
-            System.out.println("finish step");
+
             for (int i = 0; i < filesInFolder.size()-1; i+=2) {
                filesInFolder.get(i).delete();
                filesInFolder.get(i+1).delete();
@@ -300,7 +301,7 @@ public class Indexer {
             catch (IOException e) {
 
             }
-            System.out.println(currentFileToWrite);
+
         }
     }
 
@@ -404,7 +405,6 @@ public class Indexer {
             this.br1 = br1;
             this.br2 = br2;
             this.bw = bw;
-
         }
         @Override
         public void run() {
