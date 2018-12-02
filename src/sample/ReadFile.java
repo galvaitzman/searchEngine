@@ -30,24 +30,24 @@ public class ReadFile {
     public int jumping50=0;
     public  List<Pair <String, String>> documents = new ArrayList<>();
     public  StringBuilder stringBuilder;
-    public  Map <String,String> detailsOfCities = new TreeMap<>();
+    public  Set<String> cities = new TreeSet<>();
     public  Set<String> languages = new TreeSet<>();
     public  List<File> filesInFolder = null;
-    private String path;
+    private String pathOfCorpusAndStopWord;
+    private String postingAndDictionary;
 
+    public ReadFile (String pathOfCorpusAndStopWord, String postingAndDictionary){
 
-    public ReadFile (String path){
-
-
-        this.path=path;
+        this.postingAndDictionary = postingAndDictionary;
+        this.pathOfCorpusAndStopWord=pathOfCorpusAndStopWord;
         try {
-            filesInFolder = Files.walk(Paths.get(path))
+            filesInFolder = Files.walk(Paths.get(pathOfCorpusAndStopWord))
                     .filter(Files::isRegularFile)
                     .map(Path::toFile)
                     .collect(Collectors.toList());
         }
 
-        catch (IOException e){}
+        catch (IOException e){}////
         for (int i=0; i<filesInFolder.size(); i++){
             if (filesInFolder.get(i).getPath().endsWith("stop_words.txt")){
                 filesInFolder.remove(i);
@@ -204,7 +204,7 @@ public class ReadFile {
     }
 
     public void makeCityListAndLanguageList() {
-        Set<String> cities = new TreeSet<>();
+        Map <String,String> detailsOfCities = new TreeMap<>();
         for (int i=0; i<filesInFolder.size(); i++){
             try {
                 String currentFileInString = new String(Files.readAllBytes(filesInFolder.get(i).toPath()));
@@ -337,7 +337,7 @@ public class ReadFile {
             for (int i=0; i<JsonItems.size(); i++){
                 City city = objectMapper.readValue(JsonItems.get(i), City.class);
                 if (cities.contains(city.capital.toUpperCase())){
-                    detailsOfCities.put(city.capital.toUpperCase(),city.name + "," + city.currencies[3] + "," + Parse.numberToTerm(Double.parseDouble(city.population + ".0"),false,false,false,false,false,"","",false,false));
+                    detailsOfCities.put(city.capital.toUpperCase(),city.name + "," + city.currencies[2] + "," + Parse.numberToTerm(Double.parseDouble(city.population + ".0"),false,false,false,false,false,"","",false,false));
                 }
             }
             con.disconnect();
@@ -349,6 +349,15 @@ public class ReadFile {
                 detailsOfCities.put(s, ",,");
             }
         }
+        try {
+            BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(postingAndDictionary + "/citiesDetails.txt", true));
+            for ( Map.Entry<String,String> entry : detailsOfCities.entrySet() ) {
+                bufferWriter.write(entry.getKey() + "," + entry.getValue() + "\n");
+            }
+            bufferWriter.flush();
+            bufferWriter.close();
+        }
+        catch (Exception e){}
 
     }
 }
