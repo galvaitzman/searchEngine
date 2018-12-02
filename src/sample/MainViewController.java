@@ -1,7 +1,6 @@
 package sample;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -13,15 +12,16 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javax.swing.text.html.ImageView;
-import java.awt.*;
-import java.awt.Label;
+import javafx.stage.StageStyle;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Optional;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Stream;
 
 public class MainViewController extends Application{
 
@@ -35,30 +35,32 @@ public class MainViewController extends Application{
     public  Text lableNumberOfDoc;
     public Text lableNumTerms;
     public Text lableTime;
+    public Button buttonLoaDicToMemory;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-      /*  this.primaryStage = primaryStage;
-        primaryStage.setTitle("Serach engine");
-        FXMLLoader fxmlLoader = new FXMLLoader();
-        Parent root = fxmlLoader.load(getClass().getResource("sample.fxml").openStream());
-         Scene scene = new Scene(root, 800, 300);
-       // scene.getStylesheets().add(getClass().getResource("WelcomeStyle.css").toExternalForm());
-        primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
-        primaryStage.show();
 
-*/
-        //--------------
     }
 
-    public void About(ActionEvent actionEvent) {
-      //  new AboutController().start();
+    public void loadDicToMemory(ActionEvent actionEvent) throws IOException {
+        if(textPathToSave.getText().equals("")) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Message");
+            alert.setContentText("The path to save the files need to fill");
+            alert.showAndWait();
+            return;
+        }
+        String delimiter = "\n";
+        Map<String, String> map = new HashMap<>();
+        try(Stream<String> lines = Files.lines(Paths.get(textPathToSave.getText()+"/dictionary.txt"))){
+            lines.filter(line -> line.contains(delimiter)).forEach(
+                    line -> map.putIfAbsent(line.split(delimiter)[0], line.split(delimiter)[1])
+            );
+
+        }
+        System.out.println("gg");
     }
 
- /*   public void browse(ActionEvent actionEvent) {
-        //  new AboutController().start();
-    }*/
 
     public void startBuild(ActionEvent actionEvent) {
         long start = System.nanoTime();
@@ -119,6 +121,7 @@ public class MainViewController extends Application{
 
 
     public void showDic(ActionEvent actionEvent) throws IOException {
+        /*
         Stage s=new Stage();
         Parent root = FXMLLoader.load(getClass().getResource("showDic.fxml"));
         Scene scene = new Scene(root, 727, 618);
@@ -127,6 +130,18 @@ public class MainViewController extends Application{
         s.setResizable(false);
         s.sizeToScene();
         s.show();
+*/
+        FXMLLoader fxmlLoader =new FXMLLoader();
+        Parent root = fxmlLoader.load(getClass().getResource("showDic.fxml"));
+        Stage stage =new Stage(StageStyle.DECORATED);
+        stage.setTitle("Show dictionary");
+        stage.setScene(new Scene(root));
+        ShowDicController showDicController =fxmlLoader.getController();
+        if(main.indexer.treeMapForfrequentOfTermInCorpus.size() != 0){
+            showDicController.showDic();
+            stage.show();
+        }
+
 
     }
 }

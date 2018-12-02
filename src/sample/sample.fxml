@@ -63,7 +63,7 @@
          <font>
             <Font name="System Bold" size="19.0" />
          </font></CheckBox>
-      <Button layoutX="378.0" layoutY="568.0" mnemonicParsing="false" prefHeight="41.0" prefWidth="224.0" text="Load dictionary to memory " textOverrun="WORD_ELLIPSIS">
+      <Button fx:id="buttonLoaDicToMemory" layoutX="378.0" layoutY="568.0" mnemonicParsing="false" onAction="#loadDicToMemory" prefHeight="41.0" prefWidth="224.0" text="Load dictionary to memory " textOverrun="WORD_ELLIPSIS">
          <font>
             <Font size="16.0" />
          </font>
