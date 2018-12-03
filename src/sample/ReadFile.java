@@ -56,11 +56,7 @@ public class ReadFile {
 
         }
     }
-    public void setCitiesList(){
-        for (int i=0; i<filesInFolder.size(); i++){
 
-        }
-    }
     public void read() {
         stringBuilder = new StringBuilder();
         for (int i=jumping50; i<filesInFolder.size() && i<jumping50+50; i++){
@@ -337,7 +333,7 @@ public class ReadFile {
             for (int i=0; i<JsonItems.size(); i++){
                 City city = objectMapper.readValue(JsonItems.get(i), City.class);
                 if (cities.contains(city.capital.toUpperCase())){
-                    detailsOfCities.put(city.capital.toUpperCase(),city.name + "," + city.currencies[2] + "," + Parse.numberToTerm(Double.parseDouble(city.population + ".0"),false,false,false,false,false,"","",false,false));
+                    detailsOfCities.put(city.capital.toUpperCase(),city.name + "," + city.currencies[2] + "," + Parse.numberToTerm(true,Double.parseDouble(city.population + ".0"),false,false,false,false,false,"","",false,false));
                 }
             }
             con.disconnect();

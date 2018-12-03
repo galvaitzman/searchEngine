@@ -96,8 +96,8 @@ public class Indexer {
                 Map <String,Double> currentTermMap = entry.getValue();
                 for ( Map.Entry<String,Double> insideEntry : currentTermMap.entrySet() ) {
                     String [] s = String.valueOf(insideEntry.getValue()).split("\\.");
-                    if (entry.getKey().charAt(0) <= 122 && entry.getKey().charAt(0)>=97) stringBuilderSmallLetters.append(entry.getKey() + "," + insideEntry.getKey() + "," + s[0] + "," + s[1].substring(0,s[1].length()-1) + "\n");
-                    else stringBuilderBigLetters.append(entry.getKey() + "  " + insideEntry.getKey() + "  " + s[0] + "  " + s[1].substring(0,s[1].length()-1) + "\n");
+                    if (entry.getKey().charAt(0) <= 122 && entry.getKey().charAt(0)>=97) stringBuilderSmallLetters.append(entry.getKey() + "^" + insideEntry.getKey() + "^" + s[0] + "^" + s[1].substring(0,s[1].length()-1) + "\n");
+                    else stringBuilderBigLetters.append(entry.getKey() + "^" + insideEntry.getKey() + "^" + s[0] + "^" + s[1].substring(0,s[1].length()-1) + "\n");
                 }
             }
             tempBufferWriterSmallLetters.write(stringBuilderSmallLetters.toString());//
@@ -152,10 +152,10 @@ public class Indexer {
             String line2 = br2.readLine();
             List <String> listOfWordsThatShouldBeWithSmallLetters= new ArrayList<>();
             while (line2 != null){
-                if (!line2.contains(",")) continue;
+                if (!line2.contains("^")) continue;
                 String currentTerm = "";
                 int i=0;
-                while (line2.charAt(i) !=  ',') {
+                while (line2.charAt(i) !=  '^') {
                     currentTerm += line2.charAt(i);
                     i++;
                 }
@@ -235,7 +235,7 @@ public class Indexer {
                 else if (startingChar>=48 && startingChar<=57) currentCounter = startingChar - 47;
                 int lineNUmber = countersForEachLetter[currentCounter];
                 countersForEachLetter[currentCounter]++;
-                stringBuilder.append(entry.getKey() + "," + entry.getValue().toString() + "," + treeMapForfrequentOfTermInCorpus.get(entry.getKey()) + "," + lineNUmber +"\n");
+                stringBuilder.append(entry.getKey() + "  " + entry.getValue().toString() + "  " + treeMapForfrequentOfTermInCorpus.get(entry.getKey()) + "  " + lineNUmber +"\n");
             }
             dictionaryBufferWriter.write(stringBuilder.toString());
             dictionaryBufferWriter.flush();
@@ -325,10 +325,10 @@ public class Indexer {
             while (currentLine != null) {
                 previosTerm = currentTerm;
                 currentTerm = "";
-                if ( !currentLine.contains(",")) continue;
+                if ( !currentLine.contains("^")) continue;
                 else{
                     i=0;
-                    while (currentLine.charAt(i) != ','){
+                    while (currentLine.charAt(i) != '^'){
                         currentTerm += currentLine.charAt(i);
                         i++;
                     }
@@ -336,7 +336,7 @@ public class Indexer {
 
                 int startWithChar = currentLine.charAt(0);
                 if (startWithChar<=90 && startWithChar>=65){
-                    if (startWithChar-52 != currentBufferWriter){
+                    if (startWithChar-54 != currentBufferWriter){
                         bufferedWritersArray[currentBufferWriter].flush();
                         currentBufferWriter = startWithChar-54;
                     }

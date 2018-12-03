@@ -280,7 +280,7 @@ public class Parse {
         //if (!fraction.equals("")) jumpToNextWord+=1;
         //if (isUS) jumpToNextWord+=1;
         //if (andAsWord)jumpToNextWord+=1;
-        if (number != null) return between + (numberToTerm(number,(isDollar || isDollarAsWord),(isBillion || isBillionAsWord),(isMillion || isMillionAsWord),isTrillion,isThousand, percent, fraction,isKilogram,isGram)) + and + rightSide;
+        if (number != null) return between + (numberToTerm(false,number,(isDollar || isDollarAsWord),(isBillion || isBillionAsWord),(isMillion || isMillionAsWord),isTrillion,isThousand, percent, fraction,isKilogram,isGram)) + and + rightSide;
         else return "";
     }
 
@@ -298,7 +298,7 @@ public class Parse {
      * @param isGram
      * @return number with chaining properties
      */
-    public static String numberToTerm (double number, boolean isDollar, boolean isBillion, boolean isMillion, boolean isTrillion, boolean isThousand, String percent, String fraction , boolean isKilogram, boolean isGram){
+    public static String numberToTerm (boolean isCity, double number, boolean isDollar, boolean isBillion, boolean isMillion, boolean isTrillion, boolean isThousand, String percent, String fraction , boolean isKilogram, boolean isGram){
         String numberToReturn = "";
         String kmb = "";
         String kg = "";
@@ -360,7 +360,7 @@ public class Parse {
                 kmb ="K";
             }
         }
-        number = Math.round(number*100.0)/100.0;//
+        if (isCity) number = Math.round(number*100.0)/100.0;//
         numberToReturn = Double.toString(number);
         numberToReturn = numberToReturn.indexOf(".") < 0 ? numberToReturn : numberToReturn.replaceAll("0*$", "").replaceAll("\\.$", "");
         numberToReturn = numberToReturn +  fraction + kmb + percent + kg;
@@ -440,7 +440,11 @@ public class Parse {
 
             //deal with range (xx-yy)
             if (onlyTextFromDoc[i].contains("-") && onlyTextFromDoc[i].charAt(0) != '-') {
-                String[] split = onlyTextFromDoc[i].split("-");
+                String [] split=null;
+                if (onlyTextFromDoc[i].contains("--")){
+                    split = onlyTextFromDoc[i].split("--");
+                }
+                else split = onlyTextFromDoc[i].split("-");
                 if (split[1].equals("million") || split[1].equals("billion") || split[1].equals("Million") || split[1].equals("Billion") || split[1].equals("trillion")){
                     if (split[0].charAt(0) == '$'){}
                     else {
@@ -464,7 +468,7 @@ public class Parse {
                     }
 
                     if (!leftSide.contains("-") && !rightSide.contains("-")) {
-                        addToterms(leftSide + "-" + rightSide,docName,true,-1);
+                        addToterms(leftSide + "-" + rightSide,docName,false,-1);
                     }
                     else if (leftNumber != null && rightNumber != null) {
                         jumpToNextWord = jumpToNextWord/2;
@@ -487,7 +491,8 @@ public class Parse {
 
 
                 //deal with date (xx-yy)
-            } else if (months.containsKey(onlyTextFromDoc[i])) {
+            }
+            else if (months.containsKey(onlyTextFromDoc[i])) {
                 if (i < length - 1 && !lastWord) {
                     try {
                         int dayOrYear = Integer.parseInt(onlyTextFromDoc[i + 1]);
@@ -559,7 +564,7 @@ public class Parse {
                 if (!lastWord)
                     addToterms(dealWithNumbers(docName,number, i, length, nextword, onlyTextFromDoc, isBillionAsWord, isDollar, percent, fraction, isBillion, isMillion, false), docName,true,-1);
                 else
-                    addToterms(numberToTerm(number, isDollar, isBillion, isMillion, false, false, percent, fraction, false, false), docName,true,-1);
+                    addToterms(numberToTerm(false,number, isDollar, isBillion, isMillion, false, false, percent, fraction, false, false), docName,true,-1);
 
             }
 
@@ -588,7 +593,7 @@ public class Parse {
                 }*/
 
                 // add the word to the terms after stemming
-                if (isStemming) addToterms(stemmer.stemTerm(onlyTextFromDoc[i]), docName,false,i);
+                if (isStemming || citiesList.contains(onlyTextFromDoc[i].toUpperCase())) addToterms(stemmer.stemTerm(onlyTextFromDoc[i]), docName,false,i);
                 else addToterms(onlyTextFromDoc[i],docName,false,i);
             }
             i += jumpToNextWord;
@@ -613,12 +618,12 @@ public class Parse {
         if (split.length==2){
             Double leftSide = isNumber(split[0]);
             if (leftSide != null){
-                if (split[1].equals("million") || split[1].equals("Million") ) addToterms(numberToTerm(leftSide,isDollar,false,true,false,false,"","",false,false),docName,true,-1);
-                else if (split[1].equals("billion") || split[1].equals("Billion") ) addToterms(numberToTerm(leftSide,isDollar,true,false,false,false,"","",false,false),docName,true,-1);
+                if (split[1].equals("million") || split[1].equals("Million") ) addToterms(numberToTerm(false,leftSide,isDollar,false,true,false,false,"","",false,false),docName,true,-1);
+                else if (split[1].equals("billion") || split[1].equals("Billion") ) addToterms(numberToTerm(false,leftSide,isDollar,true,false,false,false,"","",false,false),docName,true,-1);
                 else if (split[1].equals("trillion") || split[1].equals("Trllion") )
-                    addToterms(numberToTerm(leftSide,isDollar,false,false,true,false,"","",false,false),docName,true,-1);
+                    addToterms(numberToTerm(false,leftSide,isDollar,false,false,true,false,"","",false,false),docName,true,-1);
                 else {
-                    addToterms(numberToTerm(leftSide,isDollar,false,false,false,false,"","",false,false),docName,true,-1);
+                    addToterms(numberToTerm(false,leftSide,isDollar,false,false,false,false,"","",false,false),docName,true,-1);
                     addToterms(onlyTextFromDoc[i],docName,false,-1);
                 }
             }
