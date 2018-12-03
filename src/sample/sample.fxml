@@ -114,7 +114,7 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="715.0" layoutY="420.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="Time(s)">
+      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="686.0" layoutY="420.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="Time(s)">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>

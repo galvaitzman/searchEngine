@@ -66,7 +66,7 @@ public class MainViewController extends Application{
         if(checkBoxStem.isSelected())
             path = "/stemmingSearchEngine"+path;
         else
-            path = "/notStemmingSearchEngine"+path;
+            path = "/noStemmingSearchEngine"+path;
         Map<String, Integer> map = new TreeMap<>();
         BufferedReader br1 = new BufferedReader(new FileReader(textPathToSave.getText()+path));
         String line1 = br1.readLine();
@@ -142,6 +142,15 @@ public class MainViewController extends Application{
             }
             file.delete();
         }
+        main.indexer = null;
+        main.readFile = null;
+        main.parser = (null);
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Message");
+        alert.setContentText("The folder have been deleted");
+        alert.showAndWait();
+        return;
     }
 
 

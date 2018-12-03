@@ -39,7 +39,14 @@ public class Main extends Application {
 
     public void startBuild(boolean isStemming,String pathOfCorpusAndStopWord , String postingAndDictionary) {
 
-        if (isStemming);
+        if (isStemming){
+            postingAndDictionary = postingAndDictionary + "/stemmingSearchEngine";
+            new File(postingAndDictionary).mkdirs();
+        }
+        else{
+            postingAndDictionary = postingAndDictionary + "/noStemmingSearchEngine";
+            new File(postingAndDictionary).mkdirs();
+        }
         readFile = new ReadFile(pathOfCorpusAndStopWord,postingAndDictionary);
         long strt = System.nanoTime();
         readFile.makeCityListAndLanguageList();

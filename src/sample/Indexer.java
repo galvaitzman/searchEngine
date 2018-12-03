@@ -303,7 +303,6 @@ public class Indexer {
             catch (IOException e) {
 
             }
-
         }
     }
 
