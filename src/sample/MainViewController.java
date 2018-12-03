@@ -21,6 +21,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -60,9 +62,13 @@ public class MainViewController extends Application{
             alert.showAndWait();
             return;
         }
-
+        String path = "/dictionary.txt";
+        if(checkBoxStem.isSelected())
+            path = "/stemmingSearchEngine"+path;
+        else
+            path = "/notStemmingSearchEngine"+path;
         Map<String, Integer> map = new TreeMap<>();
-        BufferedReader br1 = new BufferedReader(new FileReader(textPathToSave.getText()+"/dictionary.txt"));
+        BufferedReader br1 = new BufferedReader(new FileReader(textPathToSave.getText()+path));
         String line1 = br1.readLine();
         while (line1 != null ) {
             String[] x = line1.split("  ");
@@ -94,8 +100,9 @@ public class MainViewController extends Application{
         main.startBuild(checkBoxStem.isSelected(),textBrowseStopWordAndCorpus.getText(),textPathToSave.getText());
         ObservableList<String> data = FXCollections.observableArrayList(main.readFile.languages);
         comboBoxLanguage.setItems(data);
-
-        lableTime.setText((System.nanoTime() - start) * Math.pow(10, -9)+"");
+        double x = (System.nanoTime() - start) * Math.pow(10, -9);
+        NumberFormat formatter = new DecimalFormat("#0.00");
+        lableTime.setText(formatter.format(x));
         lableNumberOfDoc.setText(main.readFile.numOfDocs+"");
         lableNumTerms.setText(main.indexer.treeMapForfrequentOfTermInCorpus.size()+"");
     }
@@ -139,22 +146,44 @@ public class MainViewController extends Application{
 
 
     public void showDic(ActionEvent actionEvent) throws IOException {
-        if(main.indexer == null){
-            if(textPathToSave.getText().equals(""))
-            {
+        if(textPathToSave.getText().equals("")){
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Message");
                 alert.setContentText("Please insert the path of the dictionary");
                 alert.showAndWait();
                 return;
-            }
         }
+
+
         FXMLLoader fxmlLoader =new FXMLLoader();
         Parent root = fxmlLoader.load(getClass().getResource("showDic.fxml").openStream());
         Stage stage =new Stage(StageStyle.DECORATED);
         stage.setTitle("Show dictionary");
         stage.setScene(new Scene(root));
         ShowDicController showDicController =fxmlLoader.getController();
+        if(main.indexer == null)
+        {
+            String path = "/dictionary.txt";
+            if(checkBoxStem.isSelected())
+                path = "/stemmingSearchEngine"+path;
+            else
+                path = "/notStemmingSearchEngine"+path;
+        Indexer ind = new Indexer(textPathToSave.getText());
+            Map<String, Integer> map = new TreeMap<>();
+            BufferedReader br1 = new BufferedReader(new FileReader(textPathToSave.getText()+path));
+            String line1 = br1.readLine();
+            while (line1 != null ) {
+                String[] x = line1.split("  ");
+                map.put(x[0],Integer.parseInt(x[1]));
+                line1= br1.readLine();
+            }
+            ind.treeMapForfrequentOfTermInCorpus =  (TreeMap)((map));
+            if(ind.treeMapForfrequentOfTermInCorpus.size() != 0){
+                showDicController.showDic(ind);
+                stage.show();
+            }
+        }
+       else
         if(main.indexer.treeMapForfrequentOfTermInCorpus.size() != 0){
             showDicController.showDic(main.indexer);
             stage.show();

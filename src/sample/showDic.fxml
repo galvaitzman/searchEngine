@@ -25,12 +25,12 @@
                 <Cursor fx:constant="DEFAULT" />
             </cursor>
         </ImageView>
-      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="190.0" layoutY="77.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="Dictionary">
+      <Text fill="WHITE" fontSmoothingType="LCD" layoutX="239.0" layoutY="69.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="Dictionary">
          <font>
-            <Font name="Comic Sans MS Bold Italic" size="70.0" />
+            <Font name="Comic Sans MS Bold Italic" size="50.0" />
          </font>
       </Text>
-      <TableView fx:id="tableViewShowDic" layoutX="150.0" layoutY="97.0" prefHeight="565.0" prefWidth="398.0">
+      <TableView fx:id="tableViewShowDic" layoutX="163.0" layoutY="90.0" prefHeight="565.0" prefWidth="398.0">
         <columns>
           <TableColumn fx:id="colTerm" prefWidth="198.0" text="Term" />
           <TableColumn fx:id="colTf" prefWidth="224.0" text="TF" />
