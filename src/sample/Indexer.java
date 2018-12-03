@@ -122,7 +122,7 @@ public class Indexer {
                     .collect(Collectors.toList());
         } catch (IOException e) {
         }
-        List<File> filesInFolderBigLetters = null;
+        List<File> filesInFolderBigLetters = null;//
         try {
             filesInFolderBigLetters = Files.walk(Paths.get(path + "/big"))
                     .filter(Files::isRegularFile)

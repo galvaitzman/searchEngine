@@ -467,7 +467,7 @@ public class Parse {
                         addToterms(rightSide, docName,true,-1);
                     }
 
-                    if (!leftSide.contains("-") && !rightSide.contains("-")) {
+                    if (!leftSide.contains("-") && !rightSide.contains("-")) {//
                         addToterms(leftSide + "-" + rightSide,docName,false,-1);
                     }
                     else if (leftNumber != null && rightNumber != null) {

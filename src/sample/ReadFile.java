@@ -207,7 +207,7 @@ public class ReadFile {
                 Document doc = Jsoup.parse(currentFileInString);
                 Elements elements = doc.getElementsByTag("DOC");
                 int [] indexesOfCity = new int[0];
-                if (currentFileInString.indexOf("<F P=104>") != -1){
+                if (currentFileInString.indexOf("<F P=104>") != -1){//
                     indexesOfCity = new int [elements.size()];
                     int currentIndex = currentFileInString.indexOf("<F P=104>")+9;
                     int indexOfIndexesOfCity=1;
