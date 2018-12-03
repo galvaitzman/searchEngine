@@ -52,39 +52,31 @@ public class MainViewController extends Application{
             alert.showAndWait();
             return;
         }
-
+        if(main.indexer != null)
+        {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Message");
+            alert.setContentText("The dictionary already exist in the memory");
+            alert.showAndWait();
+            return;
+        }
 
         Map<String, Integer> map = new TreeMap<>();
         BufferedReader br1 = new BufferedReader(new FileReader(textPathToSave.getText()+"/dictionary.txt"));
         String line1 = br1.readLine();
         while (line1 != null ) {
-            map.put(line1.split(",")[0],Integer.parseInt(line1.split(",")[1]));
+            String[] x = line1.split("  ");
+            map.put(x[0],Integer.parseInt(x[1]));
             line1= br1.readLine();
         }
         main.indexer = new Indexer(textPathToSave.toString());
         main.indexer.treeMapForfrequentOfTermInCorpus = (TreeMap)((map));
 
-        System.out.println("gal");
-
-
-
-
-
-
-
-
-
-   /*     try(Stream<String> lines = Files.lines(Paths.get(textPathToSave.getText()+"/dictionary.txt"))){
-            lines.filter(line -> line.contains(delimiter)).forEach(
-                    line -> map.putIfAbsent(line.split(delimiter)[0], Integer.parseInt(line.split(delimiter)[1]))
-            );
-            main.indexer = new Indexer(textPathToSave.toString());
-            main.indexer.treeMapForfrequentOfTermInCorpus = (TreeMap)((map));
-
-            System.out.println("gal");
-
-        }*/
-
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Complete successfully");
+        alert.setHeaderText("Complete successfully");
+        alert.setContentText("The dictionary has been loaded");
+        alert.showAndWait();
     }
 
 
@@ -147,6 +139,16 @@ public class MainViewController extends Application{
 
 
     public void showDic(ActionEvent actionEvent) throws IOException {
+        if(main.indexer == null){
+            if(textPathToSave.getText().equals(""))
+            {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Message");
+                alert.setContentText("Please insert the path of the dictionary");
+                alert.showAndWait();
+                return;
+            }
+        }
         FXMLLoader fxmlLoader =new FXMLLoader();
         Parent root = fxmlLoader.load(getClass().getResource("showDic.fxml").openStream());
         Stage stage =new Stage(StageStyle.DECORATED);
@@ -157,7 +159,5 @@ public class MainViewController extends Application{
             showDicController.showDic(main.indexer);
             stage.show();
         }
-
-
     }
 }

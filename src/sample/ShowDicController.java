@@ -27,10 +27,11 @@ public class ShowDicController extends Application{
     }
 
     public void showDic(Indexer indexer) throws IOException {
+
         TreeMap<String,Integer> dic = indexer.treeMapForfrequentOfTermInCorpus;
         colTerm.setCellValueFactory(new PropertyValueFactory<Term,String>("termName"));
 
-        colTerm.setCellValueFactory(new PropertyValueFactory<Term,Integer>("termTf"));
+        colTf.setCellValueFactory(new PropertyValueFactory<Term,Integer>("termTf"));
 
         for( Map.Entry<String,Integer> entry: dic.entrySet())
         {
