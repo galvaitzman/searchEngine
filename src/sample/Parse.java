@@ -236,7 +236,7 @@ public class Parse {
                 }
                 else if(nextword.equals("kilogram") ||nextword.equals("Kilogram") ||nextword.equals("Kg") || nextword.equals("kg"))
                     isKilogram = true;
-                else if(nextword.equals("Gram") ||nextword.equals("gram"))
+                else if(nextword.equals("Gram") ||nextword.equals("gram") ||nextword.equals("g") )
                     isGram = true;
                 else if (nextword.equals("Thousand") || nextword.equals("thousand")) {
                     isThousand = true;
