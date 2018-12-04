@@ -198,7 +198,7 @@ public class ReadFile {
 
                     //documents.put(name, text );
                     documents.add(new Pair<>(name,text));
-                    stringBuilder.append(name + "," + city + "," + language +  "," + headLine +"\n");
+                    stringBuilder.append(name + "," + city + "," + language +  ","  +  headLine + "\n");
                     currentElement++;
                     numOfDocs++;
 

@@ -264,6 +264,8 @@ public class Indexer {
             br2.close();
             bw.flush();
             bw.close();
+            filesInFolderSmallLetters.get(0).delete();
+            filesInFolderBigLetters.get(0).delete();
             }
             catch (Exception e){}
     }
@@ -289,7 +291,10 @@ public class Indexer {
             while (currentLine != null) {
                 previosTerm = currentTerm;
                 currentTerm = "";
-                if ( !currentLine.contains("^")) continue;
+                if ( !currentLine.contains("^")){
+                    currentLine = br.readLine();
+                    continue;
+                }
                 else{
                     i=0;
                     while (currentLine.charAt(i) != '^'){
@@ -357,6 +362,8 @@ public class Indexer {
             br.close();
             bufferedWritersArray[currentBufferWriter].flush();
             bufferedWritersArray[currentBufferWriter].close();
+            new File (path + "/mergedPosting.txt").delete();
+
         }
         catch (IOException e) {
             System.out.println("problem");
@@ -435,7 +442,19 @@ public class Indexer {
                 String line2 = br2.readLine();
                 while (line1 != null || line2 != null) {
                     if (line1 != null && line2 != null) {
-                        if (line1.split("\\^")[0].compareTo(line2.split("\\^")[0]) < 0) {
+                        StringBuilder term1=new StringBuilder();
+                        StringBuilder term2=new StringBuilder();
+                        int currentCharTerm1 = 0;
+                        int currentCharTerm2 = 0;
+                        while (line1.charAt(currentCharTerm1) != '^'){
+                            term1.append(line1.charAt(currentCharTerm1));
+                            currentCharTerm1++;
+                        }
+                        while (line2.charAt(currentCharTerm2) != '^'){
+                            term2.append(line2.charAt(currentCharTerm2));
+                            currentCharTerm2++;
+                        }
+                        if (term1.toString().compareTo(term2.toString()) < 0) {
                             bw.write(line1 + "\n");
                             line1 = br1.readLine();
                         } else {
