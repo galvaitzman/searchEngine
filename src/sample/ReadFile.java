@@ -216,6 +216,7 @@ public class ReadFile {
                     while (currentIndex != -1 && indexOfIndexesOfCity < indexesOfCity.length){
                         indexesOfCity[indexOfIndexesOfCity] = currentIndex;
                         currentIndex = currentFileInString.indexOf("<F P=104>", currentIndex + 1);
+                        if (currentIndex != -1) currentIndex = currentIndex+9;
                         indexOfIndexesOfCity++;
                     }
                 }
@@ -240,7 +241,7 @@ public class ReadFile {
                                 }
                             }
                             city = currentFileInString.substring(startOfCity , lastOfCity).toUpperCase();
-                            if (city.length()>=2) cities.add(city);
+                            if (city.length()>=2 && city.charAt(0) != '[') cities.add(city);
                         }
                         currentElement++;
                     }
@@ -256,6 +257,7 @@ public class ReadFile {
                     while (currentIndex != -1 && indexOfIndexesOfLanguage < indexesOfLanguage.length){
                         indexesOfLanguage[indexOfIndexesOfLanguage] = currentIndex;
                         currentIndex = currentFileInString.indexOf("<F P=105>", currentIndex + 1);
+                        if (currentIndex != -1) currentIndex = currentIndex+9;
                         indexOfIndexesOfLanguage++;
                     }
                 }

@@ -32,6 +32,9 @@ public class Parse {
         stemmer = new Stemmer();
         months = new HashMap<>();
         stopWords = new HashSet<>();
+        for (String s: citiesList){
+            cities.put(s,new TreeMap<>());
+        }
         BufferedReader in = null;//
         try{
             String currentWord;
@@ -593,7 +596,7 @@ public class Parse {
                 }*/
 
                 // add the word to the terms after stemming
-                if (isStemming || citiesList.contains(onlyTextFromDoc[i].toUpperCase())) addToterms(stemmer.stemTerm(onlyTextFromDoc[i]), docName,false,i);
+                if (isStemming && !citiesList.contains(onlyTextFromDoc[i].toUpperCase())) addToterms(stemmer.stemTerm(onlyTextFromDoc[i]), docName,false,i);
                 else addToterms(onlyTextFromDoc[i],docName,false,i);
             }
             i += jumpToNextWord;
@@ -635,8 +638,13 @@ public class Parse {
             BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(postingAndDictionary + "/citiesPosting.txt", true));
 
             for ( Map.Entry<String, Map<String,String>> entry : cities.entrySet() ) {
-                for ( Map.Entry<String,String> insideEntry : entry.getValue().entrySet() ) {
-                    bufferWriter.write(insideEntry.getKey() + "," + insideEntry.getValue() + "~");
+                if (entry.getValue().entrySet().size() == 0){
+                    bufferWriter.write("No appearences of this city in the corpus");
+                }
+                else {
+                    for (Map.Entry<String, String> insideEntry : entry.getValue().entrySet()) {
+                        bufferWriter.write(insideEntry.getKey() + "," + insideEntry.getValue() + "~");
+                    }
                 }
                 bufferWriter.write("\n");
             }
