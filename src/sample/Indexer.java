@@ -51,7 +51,7 @@ public class Indexer {
      * after that it writes to the hard disk; if it start with digit, symbol or big letter, it writes it to 'big' Folder. otherwise,
      * the term starts with small letter and it writes it to 'small' folder. the temporary posting files are written in alphabetical
      * order, using the treeMap which sort it.
-     * @param docsByTerm -  <String = name of the document <String = term, *Double = number of appearances of the term in the doc
+     * @param docsByTerm -  <String = term <String = doc name, *Double = number of appearances of the term in the doc
      *                   .the first line which the term in the document>
      *                   *example of Double: 3.441 - means that the term appeared  3 times in the document, first time in line 44.
      *                   the right digit (1) is to avoid from zero to be the last digit
