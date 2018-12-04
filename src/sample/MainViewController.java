@@ -58,7 +58,7 @@ public class MainViewController extends Application{
         {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Message");
-            alert.setContentText("The dictionary already exist in the memory");
+            alert.setContentText("Dictionary already exist in the memory");
             alert.showAndWait();
             return;
         }
