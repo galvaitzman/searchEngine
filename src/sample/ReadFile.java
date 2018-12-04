@@ -26,20 +26,24 @@ import java.util.stream.Collectors;
 public class ReadFile {
 
 
-    public int numOfDocs=0;
-    public int jumping50=0;
-    public  List<Pair <String, String>> documents = new ArrayList<>();
-    public  StringBuilder stringBuilder;
-    public  Set<String> cities = new TreeSet<>();
-    public  Set<String> languages = new TreeSet<>();
-    public  List<File> filesInFolder = null;
-    private String pathOfCorpusAndStopWord;
-    private String postingAndDictionary;
+    public int numOfDocs=0; // counting the total number of docs
+    public int jumping50=0; // current index of file in filesInFolder
+    public  List<Pair <String, String>> documents = new ArrayList<>(); //every pair represents the document and its text: Pair<String = document name, String = document text>
+    public  StringBuilder stringBuilder; // string builder which collect the information (doc name, city, language, headline)
+                                         // about the docs from the current 50 files
+    public  Set<String> cities = new TreeSet<>(); // all the cities in the corpus after the <F P=104> tag
+    public  Set<String> languages = new TreeSet<>(); // all the languages in the corpus after the <F P=105> tag
+    public  List<File> filesInFolder = null; // contains pointers for all files in the document
+    private String pathOfPostingAndDictionary;
 
+    /**
+     * making pointers for all files in the corpus
+     * @param pathOfCorpusAndStopWord
+     * @param postingAndDictionary
+     */
     public ReadFile (String pathOfCorpusAndStopWord, String postingAndDictionary){
 
-        this.postingAndDictionary = postingAndDictionary;
-        this.pathOfCorpusAndStopWord=pathOfCorpusAndStopWord;
+        this.pathOfPostingAndDictionary = postingAndDictionary;
         try {
             filesInFolder = Files.walk(Paths.get(pathOfCorpusAndStopWord))
                     .filter(Files::isRegularFile)
@@ -57,6 +61,11 @@ public class ReadFile {
         }
     }
 
+    /**
+     * reading 50 files each time and filling the documents list. writing the string builder which contains the information
+     * about the documents, as described above. in this function we are using Jsoup object from 'jsoup-1.11.3.jar', which separates
+     * between tags ( <DOC></DOC> for example) in order to improve running time.
+     */
     public void read() {
         stringBuilder = new StringBuilder();
         for (int i=jumping50; i<filesInFolder.size() && i<jumping50+50; i++){
@@ -199,6 +208,13 @@ public class ReadFile {
         jumping50 += 50;
     }
 
+    /**
+     * going through all the documents and filling the cities Set and languages Set.
+     * additionally, we are using the  API restcountries which gives us an information about the cities
+     * (actually, about the capital cities only - the capital city's country,currency and population). we are using the strings
+     * which are returned from the api and written as Json objects, and converting it into City object, using the objectMapper object
+     * which implemented in 'jackson-all-1.9.0.jar'.
+     */
     public void makeCityListAndLanguageList() {
         Map <String,String> detailsOfCities = new TreeMap<>();
         for (int i=0; i<filesInFolder.size(); i++){
@@ -348,7 +364,7 @@ public class ReadFile {
             }
         }
         try {
-            BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(postingAndDictionary + "/citiesDetails.txt", true));
+            BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(pathOfPostingAndDictionary + "/citiesDetails.txt", true));
             for ( Map.Entry<String,String> entry : detailsOfCities.entrySet() ) {
                 bufferWriter.write(entry.getKey() + "," + entry.getValue() + "\n");
             }
