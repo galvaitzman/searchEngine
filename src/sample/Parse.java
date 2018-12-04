@@ -633,7 +633,7 @@ public class Parse {
         }
     }
 
-    public void makePostingForCities(){
+    public void makePostingForCities(){//
         try {
             BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(postingAndDictionary + "/citiesPosting.txt", true));
 

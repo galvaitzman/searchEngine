@@ -426,7 +426,7 @@ public class Indexer {
     /**
      * class which merging simultaneously posting files from step 2.
      */
-    private class WriteToMergePost implements Runnable{
+    private class WriteToMergePost implements Runnable{//
         BufferedReader br1;
         BufferedReader br2;
         BufferedWriter bw;
