@@ -132,7 +132,12 @@ public class MainViewController extends Application{
             alert.showAndWait();
             return;
         }
-        File dir = new File(textPathToSave.getText());
+        String path;
+        if(checkBoxStem.isSelected())
+            path = "/stemmingSearchEngine";
+        else
+            path = "/noStemmingSearchEngine";
+        File dir = new File(textPathToSave.getText()+path);
         File[] listFiles = dir.listFiles();
         for(File file : listFiles){
             if(file.isDirectory()){
@@ -142,6 +147,8 @@ public class MainViewController extends Application{
             }
             file.delete();
         }
+        File dir2 = new File(textPathToSave.getText()+path);
+        dir2.delete();
         main.indexer = null;
         main.readFile = null;
         main.parser = (null);
