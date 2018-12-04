@@ -179,7 +179,7 @@ public class ReadFile {
                         headLine =  element.getElementsByTag("TI").text();
 
                     }
-                    else if (endOfPath.startsWith("LA")){
+                    else if (endOfPath.startsWith("LA")){//
                         if ((s.indexOf("<headline>")) != -1) {
                             String temp = s.substring(s.indexOf("<headline>") + 10, s.indexOf("</headline>"));
                             int y=0;

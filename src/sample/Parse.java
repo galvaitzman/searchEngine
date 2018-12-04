@@ -35,7 +35,7 @@ public class Parse {
         for (String s: citiesList){
             cities.put(s,new TreeMap<>());
         }
-        BufferedReader in = null;//
+        BufferedReader in = null;////
         try{
             String currentWord;
             in = new BufferedReader(new FileReader(pathOfCorpusAndStopWord + "/stop_words.txt"));
