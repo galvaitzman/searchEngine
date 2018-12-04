@@ -98,7 +98,7 @@ public class Main extends Application {
             bufferWriter2.flush();
             bufferWriter1.close();
             bufferWriter2.close();
-            parser.makePostingForCities();
+            parser.makePostingForCities();//
             parser.cities.clear();
             indexer.mergePost("/big"); //8 seconds
             System.out.println("finish big letters" + (System.nanoTime() - strt) * Math.pow(10, -9));
