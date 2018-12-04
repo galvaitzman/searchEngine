@@ -31,7 +31,7 @@ public class ShowDicController extends Application{
         {
             String term = entry.getKey();
             Integer tf= entry.getValue();
-            Term t= new Term(term,tf);
+            Term t= new Term(term,tf);//
             tableViewShowDic.getItems().add(t);
         }
     }

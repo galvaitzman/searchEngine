@@ -166,7 +166,7 @@ public class MainViewController extends Application{
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Message");
                 alert.setContentText("Please insert the path of the dictionary");
-                alert.showAndWait();
+                alert.showAndWait();////
                 return;
         }
 
