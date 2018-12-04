@@ -40,7 +40,7 @@ public class Indexer {
         this.path =path;
         new File(path + "/small").mkdirs();
         new File(path + "/big").mkdirs();
-        new File(path + "/cities");//////
+        new File(path + "/cities");
 
 
     }
@@ -79,7 +79,7 @@ public class Indexer {
         }
 
 
-        TreeMap<String,Map<String, Double>> treeMap = new TreeMap<>(docsByTerm);
+        TreeMap<String,Map<String, Double>> treeMap = new TreeMap<>(docsByTerm);////
 
         try {
             StringBuilder stringBuilderSmallLetters = new StringBuilder();
