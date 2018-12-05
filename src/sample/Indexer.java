@@ -10,9 +10,10 @@ import java.util.stream.Collectors;
 public class Indexer {
     Map <String,Integer> numberOfDocsPerTerm = new HashMap<>(); //counts the appearances of term in different documents
     Map <String,Integer> frequentOfTermInCorpus = new HashMap<>(); //counts the appearances of term in the corpus
+    public TreeMap <String,Integer> treeMapForLineNumberInPosting;
     int numOfDifferentPosting = 37; // writing to 37 final posting, as described below
     BufferedWriter [] bufferedWritersArray;//as described below
-    String path; //as described below
+    String path; //as described below //
     boolean thereIsNoProblemWithBigLetters = true; //as described below
     public TreeMap<String,Integer> treeMapForDocsPerTerm; // an alphabetical sort of numberOfDocsPerTerm
     public TreeMap<String,Integer> treeMapForfrequentOfTermInCorpus; //an alphabetical sort of frequentOfTermInCorpus
@@ -398,6 +399,7 @@ public class Indexer {
         }
         treeMapForDocsPerTerm = new TreeMap<>(numberOfDocsPerTerm);
         treeMapForfrequentOfTermInCorpus = new TreeMap<>(frequentOfTermInCorpus);
+        treeMapForLineNumberInPosting= new TreeMap<>();
         numberOfDocsPerTerm.clear();
         frequentOfTermInCorpus.clear();
         try {
@@ -413,6 +415,7 @@ public class Indexer {
                 int lineNUmber = countersForEachLetter[currentCounter];
                 countersForEachLetter[currentCounter]++;
                 stringBuilder.append(entry.getKey() + "  " + entry.getValue().toString() + "  " + treeMapForfrequentOfTermInCorpus.get(entry.getKey()) + "  " + lineNUmber +"\n");
+                treeMapForLineNumberInPosting.put(entry.getKey(),lineNUmber);
             }
             dictionaryBufferWriter.write(stringBuilder.toString());
             dictionaryBufferWriter.flush();

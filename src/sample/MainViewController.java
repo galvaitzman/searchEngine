@@ -67,18 +67,24 @@ public class MainViewController extends Application{
             path = "/stemmingSearchEngine"+path;
         else
             path = "/noStemmingSearchEngine"+path;
-        Map<String, Integer> map = new TreeMap<>();
+        Map<String, Integer> mapForDoument = new TreeMap<>();
+        Map<String, Integer> mapForCorpus = new TreeMap<>();
+        Map<String, Integer> mapForLnes = new TreeMap<>();
         BufferedReader br1 = new BufferedReader(new FileReader(textPathToSave.getText()+path));
         String line1 = br1.readLine();
         while (line1 != null ) {
             String[] x = line1.split("  ");
-            map.put(x[0],Integer.parseInt(x[1]));
+            mapForCorpus.put(x[0],Integer.parseInt(x[2]));
+            mapForDoument.put(x[0],Integer.parseInt(x[1]));
+            mapForLnes.put(x[0],Integer.parseInt(x[3]));
+
             line1= br1.readLine();
         }
         main.indexer = new Indexer(textPathToSave.toString());
-        main.indexer.treeMapForfrequentOfTermInCorpus = (TreeMap)((map));
-
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        main.indexer.treeMapForfrequentOfTermInCorpus = (TreeMap)((mapForCorpus));
+        main.indexer.treeMapForDocsPerTerm = (TreeMap)((mapForDoument));
+        main.indexer.treeMapForLineNumberInPosting = (TreeMap)((mapForLnes));
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);//
         alert.setTitle("Complete successfully");
         alert.setHeaderText("Complete successfully");
         alert.setContentText("The dictionary has been loaded");
@@ -169,7 +175,6 @@ public class MainViewController extends Application{
                 alert.showAndWait();////
                 return;
         }
-
 
         FXMLLoader fxmlLoader =new FXMLLoader();
         Parent root = fxmlLoader.load(getClass().getResource("showDic.fxml").openStream());
