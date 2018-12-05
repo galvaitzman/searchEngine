@@ -3,6 +3,7 @@ package sample;
 import javafx.util.Pair;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -272,7 +273,6 @@ public class Parse {
 
                 } else if (months.containsKey(nextword)) {
                     try {
-                        addToterms(numberMonths.get(months.get(nextword)),docName,false,-1);
                         if (number >= 1 && number <= 31) {
                             jumpToNextWord+=1;
                             if (number>=1 && number<=9) return months.get(nextword) + "-0" + String.valueOf(number.intValue());
@@ -394,11 +394,25 @@ public class Parse {
             docInfo.append(docName + ",,\n");
             return;
         }
+
+        doc = doc.replaceAll("[{}()\\[\\]@#^*|]+"," ");
+
         String [] onlyTextFromDoc = null;
         onlyTextFromDoc = doc.split(" ");
-        boolean lastWord = false;
         int length = onlyTextFromDoc.length;
+        /*
+        List <String> listWithOutSograim = new ArrayList<>();
         for (int i = 0; i <length; i++) {
+            int indexOf=0;
+            int indexOfSograim = 0;
+            while (indexOf < onlyTextFromDoc[i].length() ){
+                if (onlyTextFromDoc[i].charAt(indexOf) == '(' || onlyTextFromDoc[i].charAt(indexOf) == ')' || onlyTextFromDoc[i].charAt(indexOf) == '[' || onlyTextFromDoc[i].charAt(indexOf) == ']' ||)
+            }
+        }*/
+        boolean lastWord = false;
+
+        for (int i = 0; i <length; i++) {
+            if (onlyTextFromDoc[i].length()==0) continue;
             boolean isDollar = false;
             boolean isBillion = false;
             boolean isMillion = false;
@@ -508,12 +522,14 @@ public class Parse {
             else if (months.containsKey(onlyTextFromDoc[i])) {
                 if (i < length - 1 && !lastWord) {
                     try {
-                        addToterms(numberMonths.get(months.get(onlyTextFromDoc[i])),docName,false,-1);
                         String s = onlyTextFromDoc[i + 1];
                         Double d = isNumber(onlyTextFromDoc[i + 1]);
                         int dayOrYear=0;
                         if (d != null) dayOrYear = d.intValue();
-                        else continue;
+                        else{
+                            addToterms(numberMonths.get(months.get(onlyTextFromDoc[i])),docName,false,-1);
+                            continue;
+                        }
                         if (dayOrYear >= 1 && dayOrYear <= 31) {
                             if (dayOrYear / 10 == 0)
                                 onlyTextFromDoc[i] = months.get(onlyTextFromDoc[i]) + "-0" + String.valueOf(dayOrYear);
@@ -653,8 +669,7 @@ public class Parse {
 
     public void makePostingForCities(){//
         try {
-            BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(postingAndDictionary + "/citiesPosting.txt", true));
-
+            BufferedWriter bufferWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/citiesPosting.txt",true), StandardCharsets.UTF_8));
             for ( Map.Entry<String, Map<String,String>> entry : cities.entrySet() ) {
                 if (entry.getValue().entrySet().size() == 0){
                     bufferWriter.write("No appearences of this city in the corpus");

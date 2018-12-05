@@ -12,6 +12,7 @@ import org.jsoup.select.Elements;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -362,7 +363,7 @@ public class ReadFile {
             }
         }
         try {
-            BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(pathOfPostingAndDictionary + "/citiesDetails.txt", true));
+            BufferedWriter bufferWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(pathOfPostingAndDictionary + "/citiesDetails.txt",true), StandardCharsets.UTF_8));
             for ( Map.Entry<String,String> entry : detailsOfCities.entrySet() ) {
                 bufferWriter.write(entry.getKey() + "," + entry.getValue() + "\n");
             }
