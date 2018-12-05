@@ -66,7 +66,7 @@ public class MainViewController extends Application{
         if(checkBoxStem.isSelected())
             path = "/stemmingSearchEngine"+path;
         else
-            path = "/noStemmingSearchEngine"+path;
+            path = "/notStemmingSearchEngine"+path;
         Map<String, Integer> mapForDoument = new TreeMap<>();
         Map<String, Integer> mapForCorpus = new TreeMap<>();
         Map<String, Integer> mapForLnes = new TreeMap<>();
@@ -142,7 +142,7 @@ public class MainViewController extends Application{
         if(checkBoxStem.isSelected())
             path = "/stemmingSearchEngine";
         else
-            path = "/noStemmingSearchEngine";
+            path = "/notStemmingSearchEngine";
         File dir = new File(textPathToSave.getText()+path);
         File[] listFiles = dir.listFiles();
         for(File file : listFiles){
