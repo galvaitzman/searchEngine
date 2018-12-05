@@ -1,6 +1,7 @@
 package sample;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,14 +35,14 @@ public class Indexer {
         bufferedWritersArray = new BufferedWriter[numOfDifferentPosting];
         for (int i=0; i<bufferedWritersArray.length; i++){
             try {
-                bufferedWritersArray[i] = new BufferedWriter(new FileWriter(path + "/" + i + ".txt",true));
+                bufferedWritersArray[i] = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/" + i + ".txt",true), StandardCharsets.UTF_8));
             }
             catch (IOException e){}
         }
         this.path =path;
         new File(path + "/small").mkdirs();
         new File(path + "/big").mkdirs();
-        new File(path + "/cities");
+
 
 
     }
@@ -85,8 +86,9 @@ public class Indexer {
         try {
             StringBuilder stringBuilderSmallLetters = new StringBuilder();
             StringBuilder stringBuilderBigLetters = new StringBuilder();
-            BufferedWriter tempBufferWriterSmallLetters = new BufferedWriter(new FileWriter(path + "/small/" + currentFileToWrite + ".txt"));
-            BufferedWriter tempBufferWriterBigLetters = new BufferedWriter(new FileWriter(path + "/big/" + currentFileToWrite + ".txt"));
+            BufferedWriter tempBufferWriterSmallLetters = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/small/" + currentFileToWrite + ".txt",true), StandardCharsets.UTF_8));
+            BufferedWriter tempBufferWriterBigLetters = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/big/" + currentFileToWrite + ".txt",true), StandardCharsets.UTF_8));
+
 
             for ( Map.Entry<String, Map<String,Double>> entry : treeMap.entrySet() ) {
                 Map <String,Double> currentTermMap = entry.getValue();
@@ -136,9 +138,10 @@ public class Indexer {
             Thread[]threadsArray = new Thread[filesInFolder.size()/2];
             for (int i = 0; i < filesInFolder.size()-1; i+=2) {
                 try {
-                    BufferedReader br1 = new BufferedReader(new FileReader(filesInFolder.get(i)));
-                    BufferedReader br2 = new BufferedReader(new FileReader(filesInFolder.get(i+1)));
-                    BufferedWriter bw = new BufferedWriter(new FileWriter(path +smallOrBig +"/merged" + currentFileToWrite + ".txt"));
+
+                    BufferedReader br1 = new BufferedReader(new InputStreamReader(new FileInputStream(filesInFolder.get(i)), StandardCharsets.UTF_8));
+                    BufferedReader br2 = new BufferedReader(new InputStreamReader(new FileInputStream(filesInFolder.get(i+1)), StandardCharsets.UTF_8));
+                    BufferedWriter bw =  new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path +smallOrBig +"/merged" + currentFileToWrite + ".txt",true), StandardCharsets.UTF_8));
                     threadsArray[i/2] = new Thread(new WriteToMergePost(br1,br2,bw));
                 }
                 catch (Exception e){
@@ -212,9 +215,9 @@ public class Indexer {
             }
         }
         try {
-            BufferedReader br1 = new BufferedReader(new FileReader(filesInFolderSmallLetters.get(0)));
-            BufferedReader br2 = new BufferedReader(new FileReader(filesInFolderBigLetters.get(0)));
-            BufferedWriter bw = new BufferedWriter(new FileWriter(path + "/mergedPosting.txt"));
+            BufferedReader br1 = new BufferedReader(new InputStreamReader(new FileInputStream(filesInFolderSmallLetters.get(0)), StandardCharsets.UTF_8));
+            BufferedReader br2 = new BufferedReader(new InputStreamReader(new FileInputStream(filesInFolderBigLetters.get(0)), StandardCharsets.UTF_8));
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/mergedPosting.txt",true), StandardCharsets.UTF_8));
             String line1 = br1.readLine();
             String line2 = br2.readLine();
             List <String> listOfWordsThatShouldBeWithSmallLetters= new ArrayList<>();
@@ -404,7 +407,7 @@ public class Indexer {
         frequentOfTermInCorpus.clear();
         try {
             StringBuilder stringBuilder = new StringBuilder();
-            BufferedWriter dictionaryBufferWriter = new BufferedWriter(new FileWriter(path + "/dictionary.txt"));
+            BufferedWriter dictionaryBufferWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/dictionary.txt",true), StandardCharsets.UTF_8));
             int [] countersForEachLetter = new int[numOfDifferentPosting];
             for ( Map.Entry<String, Integer> entry : treeMapForDocsPerTerm.entrySet() ) {
                 int startingChar = entry.getKey().charAt(0);

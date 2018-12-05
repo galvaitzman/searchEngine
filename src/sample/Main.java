@@ -12,6 +12,7 @@ import sun.awt.Mutex;
 import javafx.scene.image.Image;
 import java.awt.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
@@ -27,6 +28,8 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        new Tester().Tester2();
+
         this.primaryStage = primaryStage;
         primaryStage.setTitle("Search engine - Goni and Gal");
         FXMLLoader fxmlLoader = new FXMLLoader();
@@ -44,14 +47,14 @@ public class Main extends Application {
             new File(postingAndDictionary).mkdirs();
         }
         else{
-            postingAndDictionary = postingAndDictionary + "/noStemmingSearchEngine";
+            postingAndDictionary = postingAndDictionary + "/notStemmingSearchEngine";
             new File(postingAndDictionary).mkdirs();
         }
         readFile = new ReadFile(pathOfCorpusAndStopWord,postingAndDictionary);
         long strt = System.nanoTime();
         readFile.makeCityListAndLanguageList();
-        System.out.println("make city and language:" + (System.nanoTime() - strt) * Math.pow(10, -9));
         parser = new Parse(isStemming,readFile.cities,pathOfCorpusAndStopWord,postingAndDictionary);
+        //parser.parsingTextToText("OCTOBER 1992, OCTOBER gal","kljkl",true);
         indexer = new Indexer(postingAndDictionary);
 
 
@@ -60,11 +63,12 @@ public class Main extends Application {
 
 
         try {
-            BufferedWriter bufferWriter1 = new BufferedWriter(new FileWriter(postingAndDictionary + "/docInfoCityLanguageHeadLine.txt", true));
-            BufferedWriter bufferWriter2 = new BufferedWriter(new FileWriter(postingAndDictionary + "/docInfoFrequencyNumberOfUniqueWords.txt", true));
+            BufferedWriter bufferWriter1 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/docInfoCityLanguageHeadLine.txt",true), StandardCharsets.UTF_8));
+            BufferedWriter bufferWriter2 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/docInfoFrequencyNumberOfUniqueWords.txt",true), StandardCharsets.UTF_8));
 
             int i = 0;
             for (; i < readFile.filesInFolder.size() / 50 + 1; i += 1) {
+                long start = System.nanoTime();
                 System.out.println(i + " start");
                 readFile.read();
 
@@ -92,7 +96,7 @@ public class Main extends Application {
                 parser.docsByTerm.clear();
                 t1.join();
                 t2.join();
-                System.out.println((System.nanoTime() - strt) * Math.pow(10, -9));
+                System.out.println((System.nanoTime()-start)*Math.pow(10,-9));
             } //5-6 minutes
             bufferWriter1.flush();
             bufferWriter2.flush();
@@ -100,16 +104,11 @@ public class Main extends Application {
             bufferWriter2.close();
             parser.makePostingForCities();//
             parser.cities.clear();
-            indexer.mergePost("/big"); //8 seconds
-            System.out.println("finish big letters" + (System.nanoTime() - strt) * Math.pow(10, -9));
-            indexer.mergePost("/small");//40 seconds
-            System.out.println("finish small letters" + (System.nanoTime() - strt) * Math.pow(10, -9));
-            indexer.mergeBigWithSmall(); //15 sseconds
-            System.out.println("finish merging small and big" + (System.nanoTime() - strt) * Math.pow(10, -9));
-            indexer.writeToFinalPosting(); // 1 minute
-            System.out.println("finish writing to 37 files" + (System.nanoTime() - strt) * Math.pow(10, -9));
-            indexer.writeDictionary();//4 seconds
-            System.out.println("finish write dictionary" + (System.nanoTime() - strt) * Math.pow(10, -9));
+            indexer.mergePost("/big");
+            indexer.mergePost("/small");
+            indexer.mergeBigWithSmall();
+            indexer.writeToFinalPosting();
+            indexer.writeDictionary();
 
         }
         catch (Exception e) {}
