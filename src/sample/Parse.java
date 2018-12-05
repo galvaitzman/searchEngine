@@ -408,7 +408,7 @@ public class Parse {
             // remove delimiters from the last char
             int currentIndexChar = onlyTextFromDoc[i].length()-1;
             boolean wordHasChanged=false;
-            while (currentIndexChar >= 0 && !((onlyTextFromDoc[i].charAt(currentIndexChar) >= 65 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 90) || (onlyTextFromDoc[i].charAt(currentIndexChar) >= 97 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 122) || onlyTextFromDoc[i].charAt(currentIndexChar) == '%' )){
+            while (currentIndexChar >= 0 && !((onlyTextFromDoc[i].charAt(currentIndexChar) >= 65 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 90) || (onlyTextFromDoc[i].charAt(currentIndexChar) >= 97 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 122) || onlyTextFromDoc[i].charAt(currentIndexChar) == '%' || (onlyTextFromDoc[i].charAt(currentIndexChar) >= 48 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 57))){
                 lastWord = true;
                 currentIndexChar--;
                 wordHasChanged =true;
@@ -420,12 +420,12 @@ public class Parse {
 
 
             // remove delimiters from the first char
-            if (i < length - 1 && (onlyTextFromDoc[i + 1].startsWith("(") || onlyTextFromDoc[i + 1].startsWith("" + '"' + "") || onlyTextFromDoc[i].startsWith("'"))) {
+            if (i < length - 1 && (onlyTextFromDoc[i + 1].startsWith("(") || onlyTextFromDoc[i + 1].startsWith("" + '"' + "") || onlyTextFromDoc[i].startsWith("'") || onlyTextFromDoc[i].startsWith("["))) {
                 lastWord = true;
             }
             currentIndexChar = 0;
             wordHasChanged=false;
-            while (currentIndexChar < onlyTextFromDoc[i].length() && !((onlyTextFromDoc[i].charAt(currentIndexChar) >= 65 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 90) || (onlyTextFromDoc[i].charAt(currentIndexChar) >= 97 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 122) || onlyTextFromDoc[i].charAt(currentIndexChar) == '$' )){//(onlyTextFromDoc[i].charAt(currentIndexChar) == '(' || onlyTextFromDoc[i].charAt(currentIndexChar) == '"' || onlyTextFromDoc[i].charAt(currentIndexChar) == '\'' ||  onlyTextFromDoc[i].charAt(currentIndexChar) == '[' || onlyTextFromDoc[i].charAt(currentIndexChar) == '/' || onlyTextFromDoc[i].charAt(currentIndexChar) == '\\')) {
+            while (currentIndexChar < onlyTextFromDoc[i].length() && !((onlyTextFromDoc[i].charAt(currentIndexChar) >= 65 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 90) || (onlyTextFromDoc[i].charAt(currentIndexChar) >= 97 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 122) || onlyTextFromDoc[i].charAt(currentIndexChar) == '$' || (onlyTextFromDoc[i].charAt(currentIndexChar) >= 48 && onlyTextFromDoc[i].charAt(currentIndexChar) <= 57))){//(onlyTextFromDoc[i].charAt(currentIndexChar) == '(' || onlyTextFromDoc[i].charAt(currentIndexChar) == '"' || onlyTextFromDoc[i].charAt(currentIndexChar) == '\'' ||  onlyTextFromDoc[i].charAt(currentIndexChar) == '[' || onlyTextFromDoc[i].charAt(currentIndexChar) == '/' || onlyTextFromDoc[i].charAt(currentIndexChar) == '\\')) {
                 currentIndexChar++;
                 wordHasChanged = true;
             }
@@ -633,7 +633,7 @@ public class Parse {
         }
     }
 
-    public void makePostingForCities(){
+    public void makePostingForCities(){//
         try {
             BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(postingAndDictionary + "/citiesPosting.txt", true));
 
