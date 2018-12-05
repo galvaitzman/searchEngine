@@ -161,10 +161,6 @@ public class Parse {
         else return;
     }
 
-
-
-
-
     /**
      * Check if the string is number
      * @param str
@@ -638,6 +634,7 @@ public class Parse {
 
 
     }
+
     private void dealWithMakaf (String [] split, boolean isDollar,String [] onlyTextFromDoc, int i, String docName){
         if (split.length==2){
             Double leftSide = isNumber(split[0]);
