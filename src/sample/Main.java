@@ -28,8 +28,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        new Tester().Tester2();
-
         this.primaryStage = primaryStage;
         primaryStage.setTitle("Search engine - Goni and Gal");
         FXMLLoader fxmlLoader = new FXMLLoader();
@@ -51,10 +49,8 @@ public class Main extends Application {
             new File(postingAndDictionary).mkdirs();
         }
         readFile = new ReadFile(pathOfCorpusAndStopWord,postingAndDictionary);
-        long strt = System.nanoTime();
         readFile.makeCityListAndLanguageList();
         parser = new Parse(isStemming,readFile.cities,pathOfCorpusAndStopWord,postingAndDictionary);
-        //parser.parsingTextToText("OCTOBER 1992, OCTOBER gal","kljkl",true);
         indexer = new Indexer(postingAndDictionary);
 
 
@@ -68,7 +64,6 @@ public class Main extends Application {
 
             int i = 0;
             for (; i < readFile.filesInFolder.size() / 50 + 1; i += 1) {
-                long start = System.nanoTime();
                 System.out.println(i + " start");
                 readFile.read();
 
@@ -96,7 +91,6 @@ public class Main extends Application {
                 parser.docsByTerm.clear();
                 t1.join();
                 t2.join();
-                System.out.println((System.nanoTime()-start)*Math.pow(10,-9));
             } //5-6 minutes
             bufferWriter1.flush();
             bufferWriter2.flush();
