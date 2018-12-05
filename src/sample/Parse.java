@@ -14,6 +14,7 @@ public class Parse {
     private String postingAndDictionary;
     private   Map<String, String> months;
     private   HashSet<String> stopWords;
+    private Map<String,String> numberMonths;
     private int currentLine;
     private Stemmer stemmer;
     private int jumpToNextWord = 0;
@@ -32,6 +33,7 @@ public class Parse {
         stemmer = new Stemmer();
         months = new HashMap<>();
         stopWords = new HashSet<>();
+        numberMonths = new HashMap<>();
         for (String s: citiesList){
             cities.put(s,new TreeMap<>());
         }
@@ -53,6 +55,18 @@ public class Parse {
         months.put("January", "01"); months.put("February", "02"); months.put("March", "03"); months.put("April", "04");months.put("May", "05");months.put("June", "06");months.put("July", "07");months.put("August", "08");months.put("September", "09");months.put("October", "10");months.put("November", "11");months.put("December", "12");
         months.put("JANUARY", "01"); months.put("FEBRUARY", "02"); months.put("MARCH", "03"); months.put("APRIL", "04");months.put("MAY", "05");months.put("JUNE", "06");months.put("JULY", "07");months.put("AUGUST", "08");months.put("SEPTEMBER", "09");months.put("OCTOBER", "10");months.put("NOVEMBER", "11");months.put("DECEMBER", "12");
         months.put("Jan", "01");     months.put("Feb", "02");      months.put("Mar", "03");   months.put("Apr", "04");  months.put("Jun", "06");months.put("Jul", "07");months.put("Aug", "08");months.put("Sep", "09");months.put("Oct", "10");months.put("Nov", "11");months.put("Dec", "12");
+        numberMonths.put("01","JANUARY");
+        numberMonths.put("02","FEBRUARY");
+        numberMonths.put("03","MARCH");
+        numberMonths.put("04","APRIL");
+        numberMonths.put("05","MAY");
+        numberMonths.put("06","JUNE");
+        numberMonths.put("07","JULY");
+        numberMonths.put("08","AUGUST");
+        numberMonths.put("09","SEPTEMBER");
+        numberMonths.put("10","OCTOBER");
+        numberMonths.put("11","NOVEMBER");
+        numberMonths.put("12","DECEMBER");
     }
 
     /**
@@ -262,7 +276,7 @@ public class Parse {
 
                 } else if (months.containsKey(nextword)) {
                     try {
-                        addToterms(months.get(nextword),docName,true,-1);
+                        addToterms(numberMonths.get(months.get(nextword)),docName,false,-1);
                         if (number >= 1 && number <= 31) {
                             jumpToNextWord+=1;
                             if (number>=1 && number<=9) return months.get(nextword) + "-0" + String.valueOf(number.intValue());
@@ -498,21 +512,28 @@ public class Parse {
             else if (months.containsKey(onlyTextFromDoc[i])) {
                 if (i < length - 1 && !lastWord) {
                     try {
-                        int dayOrYear = Integer.parseInt(onlyTextFromDoc[i + 1]);
+                        addToterms(numberMonths.get(months.get(onlyTextFromDoc[i])),docName,false,-1);
+                        String s = onlyTextFromDoc[i + 1];
+                        Double d = isNumber(onlyTextFromDoc[i + 1]);
+                        int dayOrYear=0;
+                        if (d != null) dayOrYear = d.intValue();
+                        else continue;
                         if (dayOrYear >= 1 && dayOrYear <= 31) {
                             if (dayOrYear / 10 == 0)
                                 onlyTextFromDoc[i] = months.get(onlyTextFromDoc[i]) + "-0" + String.valueOf(dayOrYear);
                             else
                                 onlyTextFromDoc[i] = months.get(onlyTextFromDoc[i]) + "-" + String.valueOf(dayOrYear);
-                        } else
+                        }
+                        else
                             onlyTextFromDoc[i] = String.valueOf(dayOrYear) + "-" + months.get(onlyTextFromDoc[i]);
                         addToterms(onlyTextFromDoc[i], docName,true,-1);
+
                         i++;
                         continue;
 
-                    } catch (NumberFormatException e) { }
+                    } catch (NumberFormatException e) { continue;}
                 }
-                addToterms(months.get(onlyTextFromDoc[i]), docName,true,-1);
+                addToterms(numberMonths.get(months.get(onlyTextFromDoc[i])),docName,false,-1);
                 continue;
 
             }
