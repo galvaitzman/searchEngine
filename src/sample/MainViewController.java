@@ -190,7 +190,7 @@ public class MainViewController extends Application{
             String line1 = br1.readLine();
             while (line1 != null ) {
                 String[] x = line1.split("  ");
-                map.put(x[0],Integer.parseInt(x[1]));
+                map.put(x[0],Integer.parseInt(x[2]));
                 line1= br1.readLine();
             }
             ind.treeMapForfrequentOfTermInCorpus =  (TreeMap)((map));
