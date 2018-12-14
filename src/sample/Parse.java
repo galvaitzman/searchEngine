@@ -654,14 +654,16 @@ public class Parse {
         // after parsed the doc calculate the term with max appearance and insert to docInfo map
         if(!isQuery) {
             int max = 0;
+            int totalTermsNotIncludingStopWords=0;
             try {
                 for (Integer Int : termsIndoc.values()) {
+                    totalTermsNotIncludingStopWords += Int;
                     if (Int > max) max = Int;
                 }
             } catch (NullPointerException e) {
                 System.out.println(docName);
             }
-            docInfo.append(docName + "," + max + "," + termsIndoc.size() + "\n");
+            docInfo.append(docName + "," + max + "," + termsIndoc.size() + "," + totalTermsNotIncludingStopWords + "\n");
         }
 
 
