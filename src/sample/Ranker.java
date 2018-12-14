@@ -12,22 +12,26 @@ public class Ranker {
     int sizeOfIntegerArray=0;
     int currentIndexInIntegerArray=0;
     Set<String> queryAfterParsing;
-    public TreeMap<String,Integer> treeMapForLineNumberInPosting;
-    public TreeMap<String,Integer> treeMapForDocsPerTerm;
-    public TreeMap<String,Integer> treeMapForFrequentOfTermInCorpus;
-    public Map <String,Integer> termsByDF;
-    public Map <String,Integer> termsByTF;
+    public TreeMap<String,Integer> treeMapForLineNumberInPosting; // key = term, value = מספר שורה שבה הביטוי מופיע בקובץ פוסטינג
+    public TreeMap<String,Integer> treeMapForDocsPerTerm; // key = term, value = מספר המסמכים השונים בהם מופיע הביטוי
+    public TreeMap<String,Integer> treeMapForFrequentOfTermInCorpus; // key = term, value= מספר ההופעות הכללי של הביטוי בקורפוס
+    public Map <String,Integer> numberOfUniqueTermsInDoc;  // key = doc, value= מספר המילים הייחודיות במסמך
+    public Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc; // key = doc, value = מספר ההופעות של המילה הכי נפוצה במסמך
+    public Map <String,Integer> numberOfTotalTermsInDoc; // key = doc, value = אורך המסמך-כולל כפילויות, לא כולל מילות עצירה
 
     //step 1
-    public Ranker(String pathOfPostingAndDictionary, TreeMap treeMapForLineNumberInPosting,
-                  TreeMap treeMapForDocsPerTerm, TreeMap treeMapForFrequentOfTermInCorpus,
-                  Map <String,Integer> termsByDF, Map <String,Integer> termsByTF ){
+    public Ranker(String pathOfPostingAndDictionary, TreeMap <String,Integer> treeMapForLineNumberInPosting,
+                  TreeMap <String,Integer> treeMapForDocsPerTerm, TreeMap <String,Integer> treeMapForFrequentOfTermInCorpus,
+                  Map <String,Integer> numberOfUniqueTermsInDoc, Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc,
+                  Map <String,Integer> numberOfTotalTermsInDoc){
         this.pathOfPostingAndDictionary = pathOfPostingAndDictionary;
         this.treeMapForDocsPerTerm = treeMapForDocsPerTerm;
         this.treeMapForFrequentOfTermInCorpus = treeMapForFrequentOfTermInCorpus;
         this.treeMapForLineNumberInPosting = treeMapForLineNumberInPosting;
-        this.termsByTF = termsByTF;
-        this.termsByDF = termsByDF;
+        this.numberOfUniqueTermsInDoc = numberOfUniqueTermsInDoc;
+        this.numberOfAppearancesOfMostCommonTermInDoc = numberOfAppearancesOfMostCommonTermInDoc;
+        this.numberOfTotalTermsInDoc = numberOfTotalTermsInDoc;
+
     }
 
     //step 2
