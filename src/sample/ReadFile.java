@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class ReadFile {
 
 
-    public int numOfDocs=0; // counting the total number of docs
+    public static int numOfDocs=0; // counting the total number of docs
     public int jumping50=0; // current index of file in filesInFolder
     public  List<Pair <String, String>> documents = new ArrayList<>(); //every pair represents the document and its text: Pair<String = document name, String = document text>
     public  StringBuilder stringBuilder; // string builder which collect the information (doc name, city, language, headline)

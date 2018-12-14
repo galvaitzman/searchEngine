@@ -13,7 +13,5 @@ public class Searcher {
 
 
 
-    public void resolveQuery(String query){
-        HashSet<String> queryTerms = parse.QueryParser(query);
-    }
+
 }
