@@ -30,7 +30,7 @@ public class Parse {
 
     private boolean isQuery;
     private String docName;
-    private HashSet<String> queryTerms = new HashSet<>();
+    private Set<String> queryTerms = new HashSet<>();
 
 
 
@@ -708,7 +708,7 @@ public class Parse {
      * part B
      *
      */
-    public HashSet<String> QueryParser(String query)
+    public Set<String> QueryParser(String query)
     {
         isQuery = true;
         parsingTextToText(query);
