@@ -195,9 +195,9 @@ public class ReadFile {
                         headLine = temp.substring(temp.indexOf('/')+1);
                     }
 
-                    //documents.put(name, text );
+                    text = headLine + "." + text;
                     documents.add(new Pair<>(name,text));
-                    stringBuilder.append(name + "," + city + "," + language +  ","  +  headLine + "\n");
+                    stringBuilder.append(name + "," + city + "," + language + "\n");
                     currentElement++;
                     numOfDocs++;
 

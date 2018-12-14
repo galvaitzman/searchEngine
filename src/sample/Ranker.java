@@ -13,19 +13,17 @@ import java.util.TreeSet;
 public class Ranker {
     private boolean isSemantic;
     private String pathOfPostingAndDictionary;
-    Map<String,String> rankingOfDocuments =new TreeMap<>(); // String=docName, String = num of appearences of term 1, num of appearences of term 2...
+    Map<String,Integer []> appearancesCountingOfTermsInDoc =new TreeMap<>();// String=docName, String = num of appearences of term 1 from query, num of appearences of term 2 from query...
+    Map<String,Integer []> numberOfLineOfTermInDoc = new TreeMap<>();
+    int sizeOfIntegerArray = 0;
+    int currentIndexInIntegerArray=0;
     public Ranker(boolean isSemantic,String pathOfPostingAndDictionary){
         this.isSemantic =isSemantic;
         this.pathOfPostingAndDictionary = pathOfPostingAndDictionary;
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pathOfPostingAndDictionary + "/docInfoFrequencyNumberOfUniqueWords.txt"), StandardCharsets.UTF_8));
-        }
-        catch (IOException e){e.printStackTrace();}
-
     }
 
-    private Set<String> addTermsWithSameSemanticAndRanking(Set<String> queryAfterParsing){
-        Set <String> setOfTermsWithSamrSemantic = new TreeSet<>();
+    private Set<String> addTermsWithSameSemanticAndRankingCurrentQueryTerms(Set<String> queryAfterParsing){
+        sizeOfIntegerArray = queryAfterParsing.size() * 2;
         for (String s:queryAfterParsing){
             int startingChar = s.charAt(0);
             int numOfPosting=0;
@@ -36,6 +34,7 @@ public class Ranker {
                 BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pathOfPostingAndDictionary + "/" + numOfPosting + ".txt"), StandardCharsets.UTF_8));
                 String line = br.readLine();
                 boolean termFound = false;
+                Thread currentThread = null;
                 while (line != null && !termFound){
                     StringBuilder stringBuilder = new StringBuilder();
                     int charAt = 0;
@@ -44,9 +43,20 @@ public class Ranker {
                         charAt++;
                     }
                     if (stringBuilder.toString().equals(s)){
+
                         String [] docs = s.split("~");
-                        for (int i=0; i<docs.length; i++){
+                        String [] docsInfoOfFirstDoc;
+                        docsInfoOfFirstDoc = new String[] {docs[0].split("\\^")[1],docs[0].split("\\^")[2],docs[0].split("\\^")[3]};
+                        currentThread = new Thread(()-> {addToTempRankingOfDocuments(docsInfoOfFirstDoc); });
+                        currentThread.start();
+                        for (int i=1; i<docs.length; i++){
+                            try {
+                                currentThread.join();
+                            }
+                           catch (InterruptedException e){e.printStackTrace();}
                             String [] docsInfo = docs[i].split("\\^");
+                            currentThread = new Thread(()-> {addToTempRankingOfDocuments(docsInfo); });
+                            currentThread.start();
 
                         }
                         termFound = true;
@@ -56,6 +66,16 @@ public class Ranker {
             }
             catch (IOException e){e.printStackTrace();}
         }
-        return setOfTermsWithSamrSemantic;
+        return null;
+    }
+
+    private void addToTempRankingOfDocuments(String [] docsInfo){
+
+        for (String s: docsInfo){
+            if (tempRankingOfDocuments.get(docsInfo[0]) != null){
+                tempRankingOfDocuments
+            }
+        }
+
     }
 }

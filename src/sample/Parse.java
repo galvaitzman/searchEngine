@@ -11,6 +11,7 @@ import java.util.*;
 
 public class Parse {
 
+
     private String pathOfCorpusAndStopWord;
     private String postingAndDictionary;
     private   Map<String, String> months;
@@ -664,6 +665,7 @@ public class Parse {
                 System.out.println(docName);
             }
             docInfo.append(docName + "," + max + "," + termsIndoc.size() + "," + totalTermsNotIncludingStopWords + "\n");
+
         }
 
 
@@ -717,6 +719,19 @@ public class Parse {
         isQuery = false;
         return queryTerms;
     }
+
+    /*public class writeDocsInformationAboutTheirTerms implements Runnable  {
+        private BufferedWriter bw;
+        private Map<String,Integer> specificDoc;
+        public writeDocsInformationAboutTheirTerms(BufferedWriter bw, Map<String,Integer> specificDoc){
+            this.bw = bw;
+            this.specificDoc = specificDoc;
+        }
+        @Override
+        public void run() {
+
+        }
+    }*/
 
 }
 
