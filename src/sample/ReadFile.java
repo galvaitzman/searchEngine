@@ -195,7 +195,7 @@ public class ReadFile {
                         headLine = temp.substring(temp.indexOf('/')+1);
                     }
 
-                    text = headLine + "." + text;
+                    text = headLine + ". " + text;
                     documents.add(new Pair<>(name,text));
                     stringBuilder.append(name + "," + city + "," + language + "\n");
                     currentElement++;
@@ -366,6 +366,15 @@ public class ReadFile {
             BufferedWriter bufferWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(pathOfPostingAndDictionary + "/citiesDetails.txt",true), StandardCharsets.UTF_8));
             for ( Map.Entry<String,String> entry : detailsOfCities.entrySet() ) {
                 bufferWriter.write(entry.getKey() + "," + entry.getValue() + "\n");
+            }
+            bufferWriter.flush();
+            bufferWriter.close();
+        }
+        catch (Exception e){}
+        try {
+            BufferedWriter bufferWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(pathOfPostingAndDictionary + "/languages.txt",true), StandardCharsets.UTF_8));
+            for ( String s : languages ) {
+                bufferWriter.write(s + "\n");
             }
             bufferWriter.flush();
             bufferWriter.close();

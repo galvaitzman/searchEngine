@@ -23,9 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class MainViewController extends Application{
@@ -41,6 +39,7 @@ public class MainViewController extends Application{
     public Text lableNumTerms;
     public Text lableTime;
     public Button buttonLoaDicToMemory;
+
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -62,33 +61,8 @@ public class MainViewController extends Application{
             alert.showAndWait();
             return;
         }
-        String path = "/dictionary.txt";
-        if(checkBoxStem.isSelected())
-            path = "/stemmingSearchEngine"+path;
-        else
-            path = "/notStemmingSearchEngine"+path;
-        Map<String, Integer> mapForDoument = new TreeMap<>();
-        Map<String, Integer> mapForCorpus = new TreeMap<>();
-        Map<String, Integer> mapForLnes = new TreeMap<>();
-        BufferedReader br1 = new BufferedReader(new FileReader(textPathToSave.getText()+path));
-        String line1 = br1.readLine();
-        while (line1 != null ) {
-            String[] x = line1.split("  ");
-            mapForCorpus.put(x[0],Integer.parseInt(x[2]));
-            mapForDoument.put(x[0],Integer.parseInt(x[1]));
-            mapForLnes.put(x[0],Integer.parseInt(x[3]));
 
-            line1= br1.readLine();
-        }
-        main.indexer = new Indexer(textPathToSave.toString());
-        main.indexer.treeMapForfrequentOfTermInCorpus = (TreeMap)((mapForCorpus));
-        main.indexer.treeMapForDocsPerTerm = (TreeMap)((mapForDoument));
-        main.indexer.treeMapForLineNumberInPosting = (TreeMap)((mapForLnes));
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);//
-        alert.setTitle("Complete successfully");
-        alert.setHeaderText("Complete successfully");
-        alert.setContentText("The dictionary has been loaded");
-        alert.showAndWait();
+
     }
 
 
@@ -209,5 +183,73 @@ public class MainViewController extends Application{
             showDicController.showDic(main.indexer);
             stage.show();
         }
+    }
+
+    private void loadDictionaries() throws IOException{
+        String dictionary = "/dictionary.txt";
+        String currentPath="";
+        if(checkBoxStem.isSelected()) {
+            dictionary = "/stemmingSearchEngine" + dictionary;
+            currentPath = textPathToSave.getText() + "/stemmingSearchEngine";
+        }
+        else {
+            dictionary = "/notStemmingSearchEngine" + dictionary;
+            currentPath = textPathToSave.getText() + "/notStemmingSearchEngine";
+        }
+        /////////////////////////////////////////////////////////
+        Map<String, Integer> mapForDoument = new TreeMap<>();
+        Map<String, Integer> mapForCorpus = new TreeMap<>();
+        Map<String, Integer> mapForLnes = new TreeMap<>();
+        BufferedReader br1 = new BufferedReader(new FileReader(textPathToSave.getText()+dictionary));
+        String line1 = br1.readLine();
+        while (line1 != null ) {
+            String[] x = line1.split("  ");
+            mapForCorpus.put(x[0],Integer.parseInt(x[2]));
+            mapForDoument.put(x[0],Integer.parseInt(x[1]));
+            mapForLnes.put(x[0],Integer.parseInt(x[3]));
+            line1= br1.readLine();
+        }
+        main.indexer = new Indexer(textPathToSave.toString());
+        main.indexer.treeMapForfrequentOfTermInCorpus = (TreeMap)((mapForCorpus));
+        main.indexer.treeMapForDocsPerTerm = (TreeMap)((mapForDoument));
+        main.indexer.treeMapForLineNumberInPosting = (TreeMap)((mapForLnes));
+        ////////////////////////////////////////////////////////////////////
+        /*Set<String> languages = new TreeSet<>();
+        BufferedReader br2 = new BufferedReader(new FileReader(currentPath+"/languages.txt"));
+        String line2 = br2.readLine();
+        while (line2 != null ) {
+            languages.add(line2.substring(0,line2.length()-1));
+            line2= br2.readLine();
+        }
+        main.readFile = new ReadFile(textBrowseStopWordAndCorpus.getText(),currentPath);
+        main.readFile.languages = languages;*/
+        /////////////////////////////////////////////////////////////////////
+        Set<String> cities = new TreeSet<>();
+        BufferedReader br3 = new BufferedReader(new FileReader(currentPath+"/citiesDetails.txt"));
+        String line3 = br3.readLine();
+        while (line3 != null ) {
+            String[] x = line3.split(",");
+            cities.add(x[0]);
+            line3= br3.readLine();
+        }
+        main.parser = new Parse(checkBoxStem.isSelected(),cities,textBrowseStopWordAndCorpus.getText(),currentPath);
+        ////////////////////////////////////////////////////////////////////
+        Map <String,Integer> numberOfUniqueTermsInDoc = new HashMap<>();  // key = doc, value= מספר המילים הייחודיות במסמך
+        Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc = new HashMap<>(); // key = doc, value = מספר ההופעות של המילה הכי נפוצה במסמך
+        Map <String,Integer> numberOfTotalTermsInDoc = new HashMap<>();; // key = doc, va
+
+        BufferedReader br4 = new BufferedReader(new FileReader(currentPath+"/citiesDetails.txt"));
+        String line4 = br4.readLine();
+        while (line4 != null ) {
+            String[] x = line3.split(",");
+            cities.add(x[0]);
+            line3= br3.readLine();
+        }
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);//
+        alert.setTitle("Complete successfully");
+        alert.setHeaderText("Complete successfully");
+        alert.setContentText("The dictionaries have been loaded");
+        alert.showAndWait();
     }
 }

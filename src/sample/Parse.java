@@ -1,8 +1,11 @@
 package sample;
 
 import javafx.util.Pair;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -20,7 +23,7 @@ public class Parse {
     private int currentLine;
     private Stemmer stemmer;
     private int jumpToNextWord = 0;
-    private Set <String> citiesList;
+    public Set <String> citiesList;
     public StringBuilder docInfo = new StringBuilder();
     public Map<String, Map<String, Double>> docsByTerm = new HashMap<>(); // key = term , value = { key = doc id , value = number of appearance in specific doc . first appearence in doc }
     public Map<String, Integer> termsIndoc = new HashMap<>();// key = doc id , value = <term, tf>
@@ -31,7 +34,7 @@ public class Parse {
 
     private boolean isQuery;
     private String docName;
-    private Set<String> queryTerms = new HashSet<>();
+    private Set<String> queryTerms ;
 
 
 
@@ -405,6 +408,7 @@ public class Parse {
      */
     public void parsingTextToText(String text) {
         termsIndoc = new HashMap<>();
+        queryTerms = new HashSet<>();
         currentLine = 1;
         if (text.length()<=1){
             docInfo.append(docName + ",,\n");
@@ -664,7 +668,7 @@ public class Parse {
             } catch (NullPointerException e) {
                 System.out.println(docName);
             }
-            docInfo.append(docName + "," + max + "," + termsIndoc.size() + "," + totalTermsNotIncludingStopWords + "\n");
+            docInfo.append(docName + "," + max + "," + termsIndoc.size() + "," + totalTermsNotIncludingStopWords +  "\n");
 
         }
 
@@ -714,24 +718,83 @@ public class Parse {
      */
     public Set<String> QueryParser(String query)
     {
+        Set <String> finalSet = null;
         isQuery = true;
-        parsingTextToText(query);
+        String query2 = "";
+        String [] queryArray = query.split(" ");
+        String allWordstoAPI = "";
+        for (int i=0; i<queryArray.length; i++) {
+            if (i == 0) {
+                allWordstoAPI = queryArray[0];
+            } else {
+                allWordstoAPI = allWordstoAPI + "+" + queryArray[i];
+            }
+        }
+        try {
+            query2 = "";
+            String urlString = "https://api.datamuse.com/words?ml=" + allWordstoAPI;
+            URL url = new URL(urlString);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer content = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            in.close();
+            String detailsOfCity = content.toString();
+            int BracketCount = 0;
+            List<String> JsonItems = new ArrayList<>();
+            StringBuilder Json = new StringBuilder();
+            int currentCharIndex = 0;
+            for(char c:detailsOfCity.toCharArray())
+            {
+                if (currentCharIndex == 0 || currentCharIndex == detailsOfCity.length()-1){
+                    currentCharIndex++;
+                    continue;
+                }
+                if (c == '{')
+                    ++BracketCount;
+                else if (c == '}')
+                    --BracketCount;
+                Json.append(c);
+
+                if (BracketCount == 0 && c != ' ')
+                {
+                    if (!Json.toString().equals(","))JsonItems.add(Json.toString());
+                    Json = new StringBuilder();
+                }
+                currentCharIndex++;
+            }
+            ObjectMapper objectMapper = new ObjectMapper();
+            for (int j=0; j<JsonItems.size(); j++){
+                Word word = objectMapper.readValue(JsonItems.get(j), Word.class);
+                query2 = query2 + " " +  word.word.toUpperCase() + " " + word.word.toLowerCase();
+            }
+            con.disconnect();
+            parsingTextToText(query2);
+            finalSet = new HashSet(queryTerms);
+        }
+        catch (Exception e) {
+
+        }
+        String queryWithBigLettersAndSmallLetters="";
+        for(String s:queryArray){
+            queryWithBigLettersAndSmallLetters = queryWithBigLettersAndSmallLetters + " " + s.toUpperCase() + " " + s.toLowerCase();
+        }
+        parsingTextToText(queryWithBigLettersAndSmallLetters);
+        for (String s: queryTerms){
+            finalSet.add(s);
+        }
         isQuery = false;
-        return queryTerms;
+        return finalSet;//
     }
 
-    /*public class writeDocsInformationAboutTheirTerms implements Runnable  {
-        private BufferedWriter bw;
-        private Map<String,Integer> specificDoc;
-        public writeDocsInformationAboutTheirTerms(BufferedWriter bw, Map<String,Integer> specificDoc){
-            this.bw = bw;
-            this.specificDoc = specificDoc;
-        }
-        @Override
-        public void run() {
 
-        }
-    }*/
+
+
 
 }
 

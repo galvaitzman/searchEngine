@@ -8,10 +8,13 @@ import javafx.scene.Scene;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import javafx.util.Pair;
+import org.codehaus.jackson.map.ObjectMapper;
 import sun.awt.Mutex;
 import javafx.scene.image.Image;
 import java.awt.*;
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -23,11 +26,15 @@ public class Main extends Application {
     public Parse parser;
     public ReadFile readFile;
     public Indexer indexer;
+    public Ranker ranker;
+    public Searcher searcher;
     Stage primaryStage;
 
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+
+
         this.primaryStage = primaryStage;
         primaryStage.setTitle("Search engine - Goni and Gal");
         FXMLLoader fxmlLoader = new FXMLLoader();
@@ -48,10 +55,13 @@ public class Main extends Application {
             postingAndDictionary = postingAndDictionary + "/notStemmingSearchEngine";
             new File(postingAndDictionary).mkdirs();
         }
+
         readFile = new ReadFile(pathOfCorpusAndStopWord,postingAndDictionary);
         readFile.makeCityListAndLanguageList();
         parser = new Parse(isStemming,readFile.cities,pathOfCorpusAndStopWord,postingAndDictionary);
         indexer = new Indexer(postingAndDictionary);
+        //parser.QueryParser("Nobel prize winners");
+
 
 
         List<Pair<String, String>> readyDocumentsFromReadFile = readFile.documents;
@@ -103,6 +113,7 @@ public class Main extends Application {
             indexer.mergeBigWithSmall();
             indexer.writeToFinalPosting();
             indexer.writeDictionary();
+            indexer.IDFForBM25();
 
         }
         catch (Exception e) {}
