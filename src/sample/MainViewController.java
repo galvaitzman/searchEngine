@@ -209,6 +209,14 @@ public class MainViewController extends Application{
             mapForLnes.put(x[0],Integer.parseInt(x[3]));
             line1= br1.readLine();
         }
+        BufferedReader br6 = new BufferedReader(new FileReader(currentPath + "/IDF_BM25.txt"));
+        String line6 = br6.readLine();
+        Map<String, Double> IDF_BM25_Map = new TreeMap<>();
+        while (line6 != null ) {
+            String[] x = line6.split("\\^");
+            IDF_BM25_Map.put(x[0],Double.parseDouble(x[1]));
+            line6= br6.readLine();
+        }
         main.indexer = new Indexer(textPathToSave.toString());
         main.indexer.treeMapForfrequentOfTermInCorpus = (TreeMap)((mapForCorpus));
         main.indexer.treeMapForDocsPerTerm = (TreeMap)((mapForDoument));
@@ -236,16 +244,25 @@ public class MainViewController extends Application{
         ////////////////////////////////////////////////////////////////////
         Map <String,Integer> numberOfUniqueTermsInDoc = new HashMap<>();  // key = doc, value= מספר המילים הייחודיות במסמך
         Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc = new HashMap<>(); // key = doc, value = מספר ההופעות של המילה הכי נפוצה במסמך
-        Map <String,Integer> numberOfTotalTermsInDoc = new HashMap<>();; // key = doc, va
+        Map <String,Integer> numberOfTotalTermsInDoc = new HashMap<>(); //
 
-        BufferedReader br4 = new BufferedReader(new FileReader(currentPath+"/citiesDetails.txt"));
+        BufferedReader br4 = new BufferedReader(new FileReader(currentPath+"/docInfoFrequencyNumberOfUniqueWords.txt"));
         String line4 = br4.readLine();
         while (line4 != null ) {
-            String[] x = line3.split(",");
-            cities.add(x[0]);
-            line3= br3.readLine();
+            String[] x = line4.split(",");
+            numberOfAppearancesOfMostCommonTermInDoc.put(x[0],Integer.parseInt(x[1]));
+            numberOfUniqueTermsInDoc.put(x[0],Integer.parseInt(x[2]));
+            numberOfTotalTermsInDoc.put(x[0],Integer.parseInt(x[3]));
+            line4= br3.readLine();
         }
+        /////////////////////////////////////////////////////////////////////
+        BufferedReader br5 = new BufferedReader(new FileReader(currentPath+"/avdl.txt"));
+        String line5 = br5.readLine();
+        main.avdl = Double.parseDouble(line5);
+        //////////////////////////////////////////////////////////////////////
 
+        main.ranker = new Ranker(currentPath,numberOfUniqueTermsInDoc,numberOfAppearancesOfMostCommonTermInDoc,
+                numberOfTotalTermsInDoc,main.indexer,main.readFile,main.parser);
         Alert alert = new Alert(Alert.AlertType.INFORMATION);//
         alert.setTitle("Complete successfully");
         alert.setHeaderText("Complete successfully");

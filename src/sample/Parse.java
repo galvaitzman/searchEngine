@@ -14,7 +14,7 @@ import java.util.*;
 
 public class Parse {
 
-
+    public long totalLengthOfAllDocumentsNotIncludingStopWords=0;
     private String pathOfCorpusAndStopWord;
     private String postingAndDictionary;
     private   Map<String, String> months;
@@ -668,7 +668,14 @@ public class Parse {
             } catch (NullPointerException e) {
                 System.out.println(docName);
             }
+            totalLengthOfAllDocumentsNotIncludingStopWords+=totalTermsNotIncludingStopWords;
             docInfo.append(docName + "," + max + "," + termsIndoc.size() + "," + totalTermsNotIncludingStopWords +  "\n");
+            /*
+            try {
+                BufferedWriter bufferWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/citiesPosting.txt",true), StandardCharsets.UTF_8));
+
+            }
+            catch (IOException e){e.printStackTrace();}*/
 
         }
 

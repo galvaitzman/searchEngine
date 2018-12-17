@@ -11,13 +11,14 @@ public class Ranker {
     int counterOfTermsInQuery = 0 ;
     private String pathOfPostingAndDictionary;
     Map<String,double []> appearancesCountingOfTermsInDoc =new TreeMap<>();// String=docName, String = num of appearences of term 1 from query, num of appearences of term 2 from query...
-    Map<String,double []> numberOfLineOfTermInDoc = new TreeMap<>();// String=docName, String = num of line of term 1 from query in doc, num of line of term 2 from query in doc...
+    Map<String,int []> numberOfLineOfTermInDoc = new TreeMap<>();// String=docName, String = num of line of term 1 from query in doc, num of line of term 2 from query in doc...
     int sizeOfIntegerArray=0;
     int currentIndexInIntegerArray=0;
     Set<String> queryAfterParsing;
     Indexer indexer;
     ReadFile readFile;
     Parse parse;
+    //Map<String, Double> IDF_BM25_Map = new TreeMap<>();
     public Map <String,Integer> numberOfUniqueTermsInDoc;  // key = doc, value= מספר המילים הייחודיות במסמך
     public Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc; // key = doc, value = מספר ההופעות של המילה הכי נפוצה במסמך
     public Map <String,Integer> numberOfTotalTermsInDoc; // key = doc, value = אורך המסמך-כולל כפילויות, לא כולל מילות עצירה
@@ -41,21 +42,21 @@ public class Ranker {
     }
 
     //step 2
-    private void addTermsWithSameSemanticAndTempRankingCurrentQueryTerms(Set<String> queryAfterParsing , boolean isOriginalQuery) {
-
-        if (isOriginalQuery){
-            this.queryAfterParsing = queryAfterParsing;
-            counterOfTermsInQuery = 0;
-            sizeOfIntegerArray = queryAfterParsing.size() * 2 + 1;
-            currentIndexInIntegerArray = 0;
-        }
-
+    public void addTermsWithSameSemanticAndTempRankingCurrentQueryTerms(Set<String> queryAfterParsing , boolean isOriginalQuery) {
+        this.queryAfterParsing = queryAfterParsing;
+        counterOfTermsInQuery = 0;
+        sizeOfIntegerArray = queryAfterParsing.size() * 2 + 1;
+        currentIndexInIntegerArray = 0;
         for (String s : queryAfterParsing) {
             int startingChar = s.charAt(0);
             int numOfPosting = 0;
             if (startingChar >= 65 && startingChar <= 90) numOfPosting = startingChar - 54;
             else if (startingChar >= 97 && startingChar <= 122) numOfPosting = startingChar - 86;
             else if (startingChar >= 48 && startingChar <= 57) numOfPosting = startingChar - 47;
+            if (indexer.treeMapForLineNumberInPosting.get(s) == null){
+                currentIndexInIntegerArray++;
+                continue;
+            }
             int lineInPosting = indexer.treeMapForLineNumberInPosting.get(s) + 1;
             try{
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pathOfPostingAndDictionary + "/" + numOfPosting + ".txt"), StandardCharsets.UTF_8));
@@ -72,6 +73,7 @@ public class Ranker {
                 e.printStackTrace();
             }
         }
+
     }
 
     //step 3
@@ -90,7 +92,7 @@ public class Ranker {
     private void addToAppearancesCountingOfTermsInDocAndToNumberOfLineOfTermInDoc(String [] docInfo) {
         if (appearancesCountingOfTermsInDoc.get(docInfo[0])== null){
             appearancesCountingOfTermsInDoc.put(docInfo[0], new double[sizeOfIntegerArray]);
-            numberOfLineOfTermInDoc.put(docInfo[0], new double[sizeOfIntegerArray]);
+            numberOfLineOfTermInDoc.put(docInfo[0], new int[sizeOfIntegerArray]);
         }
         appearancesCountingOfTermsInDoc.get(docInfo[0])[currentIndexInIntegerArray] = Integer.parseInt(docInfo[1]);
         numberOfLineOfTermInDoc.get(docInfo[0])[currentIndexInIntegerArray] = Integer.parseInt(docInfo[2]);//
@@ -100,5 +102,59 @@ public class Ranker {
 
 
 
+
+    public double getBM25ForDoc(String doc_name) {
+        // c(w,d) - Map<String,int []> appearancesCountingOfTermsInDoc =new TreeMap<>();// String=docName, String = num of appearences of term 1 from query, num of appearences of term 2 from query...
+        //M-  ReadFile.numOfDocs;
+        //|d| and avdl  public Map <String,Integer> numberOfTotalTermsInDoc; // key = doc, value = אורך המסמך-כולל כפילויות, לא כולל מילות עצירה
+        // df(2)- מספר מסמכים שונים שמופיע בטרם - TreeMap<String,Integer> treeMapForDocsPerTerm; // key = term, value = מספר המסמכים השונים בהם מופיע הביטוי
+
+        double rank_BM25P = 0;
+      //  double idf;
+        double b = 0.75;
+        double k1 = 1.2;
+        double k2 = 1;
+        double d_avdl = (double) numberOfTotalTermsInDoc.get(doc_name) / Main.avdl;
+        double temp = k1 * ((1 - b) + b * d_avdl);
+
+        int counter = 0;
+        for (String s: queryAfterParsing) {
+            // maybe to calculate idf and also tf- in the indexer -  maybe to change the calculate of idf
+            //idf = Math.log(((double) ReadFile.numOfDocs + 1) / (treeMapForDocsPerTerm.get(entry.getValue())));
+            double tf = ((double) appearancesCountingOfTermsInDoc.get(doc_name)[counter]); /// numberOfAppearancesOfMostCommonTermInDoc.get(doc_name);
+            double partA = ((double) ((k1 + 1) * tf)) / (temp + tf);
+            //double partB = ((double) ((k2 + 1) * entry.getValue())) / (k2 + entry.getValue());
+            rank_BM25P += (indexer.IDF_BM25_Map.get(s) * partA);
+            counter += 1;
+        }
+        return rank_BM25P;
+
+    }
+
+        /**
+         * check if this is the values that we need to calculate
+         */
+        /*
+        double k = 2;
+        double b = 0.75;
+        double wight = 1;
+
+        for (Map.Entry<String, double[]> entry : appearancesCountingOfTermsInDoc.entrySet()) {
+            String doc = entry.getKey();
+            double rank = 0;
+            for (int i = 0; i < queryAfterParsing.size() - 1; i = i + 1) {
+                double logCal = Math.log(((double) ReadFile.numOfDocs + 1) / (treeMapForDocsPerTerm.get(queryAfterParsing.get(0))));
+                double up = (entry.getValue())[i] * (k + 1) * logCal;
+                double down = (k * (1 - b + b * ((double) numberOfTotalTermsInDoc.get(doc) / avdl)));
+
+                // get less wight to semantic words - 0.5
+                if(i >= queryAfterParsing.size()/2 ) wight = 0.5;
+                rank += wight * (up / down);
+                wight = 1;
+            }
+            // the last value is what i go to update - will be the final rank to the doc
+            entry.getValue()[entry.getValue().length - 1] = rank;
+        }
+        */
 
 }

@@ -18,6 +18,7 @@ public class Indexer {
     boolean thereIsNoProblemWithBigLetters = true; //as described below
     public TreeMap<String,Integer> treeMapForDocsPerTerm; // an alphabetical sort of numberOfDocsPerTerm
     public TreeMap<String,Integer> treeMapForfrequentOfTermInCorpus; //an alphabetical sort of frequentOfTermInCorpus
+    public Map<String, Double> IDF_BM25_Map = new TreeMap<>();
 
 
     /**
@@ -428,19 +429,43 @@ public class Indexer {
         catch (IOException e){}
     }
 
+    public void IDFForBM25() {
+            /*
+            public TreeMap<String,Integer> treeMapForLineNumberInPosting; // key = term, value = מספר שורה שבה הביטוי מופיע בקובץ פוסטינג
+            public TreeMap<String,Integer> treeMapForDocsPerTerm; // key = term, value = מספר המסמכים השונים בהם מופיע הביטוי
+            public TreeMap<String,Integer> treeMapForFrequentOfTermInCorpus; // key = term, value= מספר ההופעות הכללי של הביטוי בקורפוס
+            */
+        try {
+            BufferedWriter bufferWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path + "/IDF_BM25.txt", true), StandardCharsets.UTF_8));
+            for (Map.Entry<String, Integer> entry : treeMapForDocsPerTerm.entrySet()) {
+                double up = ReadFile.numOfDocs - entry.getValue() + 0.5;
+                double down = entry.getValue() + 0.5;
+                double bm25_idf = Math.log(up / down);
+                IDF_BM25_Map.put(entry.getKey(), bm25_idf);
+                bufferWriter.write(entry.getKey() + "^" + bm25_idf + "\n");
+            }
+        } catch (IOException e) {
+        }
+
+    }
+
+
+
 
     /**
      * class which merging simultaneously posting files from step 2.
      */
-    private class WriteToMergePost implements Runnable{//
+    private class WriteToMergePost implements Runnable {//
         BufferedReader br1;
         BufferedReader br2;
         BufferedWriter bw;
-        public  WriteToMergePost(BufferedReader br1, BufferedReader br2, BufferedWriter bw){
+
+        public WriteToMergePost(BufferedReader br1, BufferedReader br2, BufferedWriter bw) {
             this.br1 = br1;
             this.br2 = br2;
             this.bw = bw;
         }
+
         @Override
         public void run() {
             try {
@@ -448,15 +473,15 @@ public class Indexer {
                 String line2 = br2.readLine();
                 while (line1 != null || line2 != null) {
                     if (line1 != null && line2 != null) {
-                        StringBuilder term1=new StringBuilder();
-                        StringBuilder term2=new StringBuilder();
+                        StringBuilder term1 = new StringBuilder();
+                        StringBuilder term2 = new StringBuilder();
                         int currentCharTerm1 = 0;
                         int currentCharTerm2 = 0;
-                        while (line1.charAt(currentCharTerm1) != '^'){
+                        while (line1.charAt(currentCharTerm1) != '^') {
                             term1.append(line1.charAt(currentCharTerm1));
                             currentCharTerm1++;
                         }
-                        while (line2.charAt(currentCharTerm2) != '^'){
+                        while (line2.charAt(currentCharTerm2) != '^') {
                             term2.append(line2.charAt(currentCharTerm2));
                             currentCharTerm2++;
                         }
@@ -480,9 +505,11 @@ public class Indexer {
                 br2.close();
                 bw.flush();
                 bw.close();
+            } catch (IOException e) {
             }
-            catch (IOException e){}
         }
-    }
 
+
+
+    }
 }

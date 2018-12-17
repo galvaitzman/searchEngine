@@ -28,6 +28,7 @@ public class Main extends Application {
     public Indexer indexer;
     public Ranker ranker;
     public Searcher searcher;
+    public static double avdl;
     Stage primaryStage;
 
 
@@ -60,14 +61,7 @@ public class Main extends Application {
         readFile.makeCityListAndLanguageList();
         parser = new Parse(isStemming,readFile.cities,pathOfCorpusAndStopWord,postingAndDictionary);
         indexer = new Indexer(postingAndDictionary);
-        //parser.QueryParser("Nobel prize winners");
-
-
-
         List<Pair<String, String>> readyDocumentsFromReadFile = readFile.documents;
-
-
-
         try {
             BufferedWriter bufferWriter1 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/docInfoCityLanguageHeadLine.txt",true), StandardCharsets.UTF_8));
             BufferedWriter bufferWriter2 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/docInfoFrequencyNumberOfUniqueWords.txt",true), StandardCharsets.UTF_8));
@@ -114,6 +108,12 @@ public class Main extends Application {
             indexer.writeToFinalPosting();
             indexer.writeDictionary();
             indexer.IDFForBM25();
+            avdl = parser.totalLengthOfAllDocumentsNotIncludingStopWords/ReadFile.numOfDocs;
+            avdl = Math.round(avdl*100.0)/100.0;
+            BufferedWriter bufferWriter3 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/avdl.txt",true), StandardCharsets.UTF_8));
+            bufferWriter3.write(String.valueOf(avdl));
+            bufferWriter3.flush();
+            bufferWriter3.close();
 
         }
         catch (Exception e) {}
