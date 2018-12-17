@@ -25,6 +25,7 @@ public class Parse {
     private int jumpToNextWord = 0;
     public Set <String> citiesList;
     public StringBuilder docInfo = new StringBuilder();
+    public StringBuilder entitiesInDoc = new StringBuilder();
     public Map<String, Map<String, Double>> docsByTerm = new HashMap<>(); // key = term , value = { key = doc id , value = number of appearance in specific doc . first appearence in doc }
     public Map<String, Integer> termsIndoc = new HashMap<>();// key = doc id , value = <term, tf>
     public boolean isStemming;
@@ -91,6 +92,7 @@ public class Parse {
      */
     public void startParsing50Files(List<Pair <String, String>> mapOfDocs){
         docInfo = new StringBuilder();
+        entitiesInDoc = new StringBuilder();
         for (int i=0; i<mapOfDocs.size(); i++){
             Pair currentDoc = mapOfDocs.get(i);
             docName = (String)currentDoc.getKey();

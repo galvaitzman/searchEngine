@@ -221,6 +221,7 @@ public class MainViewController extends Application{
         main.indexer.treeMapForfrequentOfTermInCorpus = (TreeMap)((mapForCorpus));
         main.indexer.treeMapForDocsPerTerm = (TreeMap)((mapForDoument));
         main.indexer.treeMapForLineNumberInPosting = (TreeMap)((mapForLnes));
+        main.indexer.IDF_BM25_Map = IDF_BM25_Map;
         ////////////////////////////////////////////////////////////////////
         /*Set<String> languages = new TreeSet<>();
         BufferedReader br2 = new BufferedReader(new FileReader(currentPath+"/languages.txt"));
@@ -268,5 +269,6 @@ public class MainViewController extends Application{
         alert.setHeaderText("Complete successfully");
         alert.setContentText("The dictionaries have been loaded");
         alert.showAndWait();
+
     }
 }
