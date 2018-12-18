@@ -42,7 +42,7 @@ public class Ranker {
     }
 
     //step 2
-    public void addTermsWithSameSemanticAndTempRankingCurrentQueryTerms(Set<String> queryAfterParsing , boolean isOriginalQuery) {
+    public void addTermsWithSameSemanticAndTempRankingCurrentQueryTerms(Set<String> queryAfterParsing) {
         this.queryAfterParsing = queryAfterParsing;
         counterOfTermsInQuery = 0;
         sizeOfIntegerArray = queryAfterParsing.size() * 2 + 1;
@@ -60,16 +60,34 @@ public class Ranker {
             int lineInPosting = indexer.treeMapForLineNumberInPosting.get(s) + 1;
             try{
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pathOfPostingAndDictionary + "/" + numOfPosting + ".txt"), StandardCharsets.UTF_8));
-            String line;
+            String line="";
             int currentLineIndex = 0;
+            //while (line != null){
             while (currentLineIndex < lineInPosting) {
-                br.readLine();
+                if (line.split("\\^")[0].equals("teresa")){
+                    System.out.println(1);
+                }
+                if (currentLineIndex==5000){
+                    System.out.println("asdsad");
+                }
+                if (currentLineIndex==10000){
+                    System.out.println("asdsad");
+                }
+                if (currentLineIndex==15000){
+                    System.out.println("asdsad");
+                }
+                if (currentLineIndex==20000){
+                    System.out.println("asdsad");
+                }
+                line=br.readLine();
                 currentLineIndex++;
             }
-            line = br.readLine();
+                System.out.println(4);
+            //line = br.readLine();
             String[] docs = line.split("~");
             addToAppearancesCountingOfTermsInDocAndToNumberOfLineOfTermInDocWraper(docs);}
             catch (IOException e){
+                System.out.println("goni");
                 e.printStackTrace();
             }
         }
@@ -98,6 +116,22 @@ public class Ranker {
         numberOfLineOfTermInDoc.get(docInfo[0])[currentIndexInIntegerArray] = Integer.parseInt(docInfo[2]);//
     }
 
+    public List<String> rankEveryDocument () {
+        Map <String,Double> rankingForDocs = new HashMap<>();
+        for (Map.Entry<String, double[]> insideEntry : appearancesCountingOfTermsInDoc.entrySet()) {
+            rankingForDocs.put(insideEntry.getKey(),getBM25ForDoc(insideEntry.getKey()));
+        }
+        List<Map.Entry<String, Double>> list = new ArrayList<>(rankingForDocs.entrySet());
+        list.sort(Map.Entry.comparingByValue());
+        List<String> result = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : list) {
+            result.add(entry.getKey());
+        }
+        System.out.println(rankingForDocs.get("FBIS4-30404"));
+        System.out.println(rankingForDocs.get("FBIS3-10014"));
+
+        return null;
+    }
 
 
 
@@ -124,7 +158,9 @@ public class Ranker {
             double tf = ((double) appearancesCountingOfTermsInDoc.get(doc_name)[counter]); /// numberOfAppearancesOfMostCommonTermInDoc.get(doc_name);
             double partA = ((double) ((k1 + 1) * tf)) / (temp + tf);
             //double partB = ((double) ((k2 + 1) * entry.getValue())) / (k2 + entry.getValue());
-            rank_BM25P += (indexer.IDF_BM25_Map.get(s) * partA);
+            if(indexer.IDF_BM25_Map.get(s)!= null) {
+                rank_BM25P += (indexer.IDF_BM25_Map.get(s) * partA);
+            }
             counter += 1;
         }
         return rank_BM25P;

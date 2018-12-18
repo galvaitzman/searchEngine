@@ -306,7 +306,8 @@ public class ReadFile {
 
 
             }
-            catch (IOException e){e.printStackTrace();}
+            catch (IOException e){
+                System.out.println(1);}
         }
 
         try {
@@ -356,6 +357,7 @@ public class ReadFile {
             con.disconnect();
         }
         catch (Exception e) {
+            System.out.println(2);
         }
         for (String s:cities){
             if (detailsOfCities.get(s) == null){
@@ -370,7 +372,9 @@ public class ReadFile {
             bufferWriter.flush();
             bufferWriter.close();
         }
-        catch (Exception e){}
+        catch (Exception e){
+            System.out.println(3);
+        }
         try {
             BufferedWriter bufferWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(pathOfPostingAndDictionary + "/languages.txt",true), StandardCharsets.UTF_8));
             for ( String s : languages ) {
@@ -379,7 +383,9 @@ public class ReadFile {
             bufferWriter.flush();
             bufferWriter.close();
         }
-        catch (Exception e){}
+        catch (Exception e){
+            System.out.println(4);
+        }
 
     }
 

@@ -3,6 +3,7 @@ package sample;
 import javafx.util.Pair;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import javax.management.Query;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -14,6 +15,8 @@ import java.util.*;
 
 public class Parse {
 
+    boolean firstword=false;
+    int counterForEntities=0;
     public long totalLengthOfAllDocumentsNotIncludingStopWords=0;
     private String pathOfCorpusAndStopWord;
     private String postingAndDictionary;
@@ -23,6 +26,8 @@ public class Parse {
     private int currentLine;
     private Stemmer stemmer;
     private int jumpToNextWord = 0;
+    private Map <String,Integer> mapOfEntitiesLineNumber;
+    private Map <String,Integer> mapOfEntitiesCounter;
     public Set <String> citiesList;
     public StringBuilder docInfo = new StringBuilder();
     public StringBuilder entitiesInDoc = new StringBuilder();
@@ -97,6 +102,10 @@ public class Parse {
             Pair currentDoc = mapOfDocs.get(i);
             docName = (String)currentDoc.getKey();
             String doc = (String)currentDoc.getValue();
+            entitiesInDoc.append(docName + "~");
+            counterForEntities=0;
+            mapOfEntitiesCounter = new HashMap<>();
+            mapOfEntitiesLineNumber = new HashMap<>();
             parsingTextToText(doc);
         }
 
@@ -169,10 +178,23 @@ public class Parse {
             if (docsByTerm.get(str.toUpperCase()) != null) str = str.toUpperCase();
             else if (docsByTerm.get(str.toLowerCase()) != null) str = str.toLowerCase();
             else str = str.toUpperCase();
+            if (str.charAt(0)>=65 && str.charAt(0)<=90 && !stopWords.contains(str.toLowerCase())) {
+                if (mapOfEntitiesLineNumber.get(str) == null){
+                    counterForEntities++;
+                    mapOfEntitiesLineNumber.put(str,currentLine);
+                    mapOfEntitiesCounter.put(str,1);
+
+                }
+                else{
+                    mapOfEntitiesCounter.put(str,mapOfEntitiesCounter.get(str)+1);
+                }
+            }
             directAddingTerm(str,currentIndexInDoc);
         }
         else if (str.matches(".*[a-z]+.*")) {
             if (docsByTerm.get(str.toUpperCase()) != null) {
+                mapOfEntitiesLineNumber.remove(str.toUpperCase());
+                mapOfEntitiesCounter.remove(str.toUpperCase());
                 docsByTerm.put(str.toLowerCase(),docsByTerm.remove(str.toUpperCase()));
                 if (termsIndoc.get(docName) != null){
                     if(termsIndoc.get(str.toUpperCase()) != null){
@@ -444,7 +466,7 @@ public class Parse {
             Double number = null;
 
             // help to deal with number of terms with capital letters
-            boolean firstword = false;
+            firstword = false;
             if(lastWord) {
                 firstword = true;
                 currentLine++;
@@ -651,6 +673,7 @@ public class Parse {
                 }*/
 
                 // add the word to the terms after stemming
+                if (firstword) onlyTextFromText[i] =onlyTextFromText[i].toLowerCase();
                 if (isStemming && !citiesList.contains(onlyTextFromText[i].toUpperCase())) addToterms(stemmer.stemTerm(onlyTextFromText[i]),false,i);
                 else addToterms(onlyTextFromText[i],false,i);
             }
@@ -661,17 +684,45 @@ public class Parse {
         // after parsed the doc calculate the term with max appearance and insert to docInfo map
         if(!isQuery) {
             int max = 0;
+
             int totalTermsNotIncludingStopWords=0;
+
             try {
-                for (Integer Int : termsIndoc.values()) {
-                    totalTermsNotIncludingStopWords += Int;
-                    if (Int > max) max = Int;
+                for ( Map.Entry<String, Integer> entry : termsIndoc.entrySet() ) {
+                    totalTermsNotIncludingStopWords += entry.getValue();
+                    if (entry.getValue() > max) max = entry.getValue();
                 }
             } catch (NullPointerException e) {
                 System.out.println(docName);
             }
+            double weightOfDocNormalizeByMostCommonWord=0;
+            double weightOfDocNormalizeByLengthOfDoc=0;
+            for ( Map.Entry<String, Integer> entry : termsIndoc.entrySet() ) {
+                weightOfDocNormalizeByMostCommonWord += Math.pow(((double)entry.getValue()) / max,2) ;
+                weightOfDocNormalizeByLengthOfDoc += Math.pow(((double)entry.getValue()) / totalTermsNotIncludingStopWords,2) ;
+            }
+            weightOfDocNormalizeByLengthOfDoc = Math.sqrt(weightOfDocNormalizeByLengthOfDoc);
+            weightOfDocNormalizeByMostCommonWord = Math.sqrt(weightOfDocNormalizeByMostCommonWord);
+            docInfo.append(docName + "," + max + "," + termsIndoc.size() + "," + totalTermsNotIncludingStopWords +  "," + weightOfDocNormalizeByMostCommonWord + "," + weightOfDocNormalizeByLengthOfDoc +"\n");
+            Map <String,Double> mapOfEntitiesRanking = new TreeMap<>();
             totalLengthOfAllDocumentsNotIncludingStopWords+=totalTermsNotIncludingStopWords;
-            docInfo.append(docName + "," + max + "," + termsIndoc.size() + "," + totalTermsNotIncludingStopWords +  "\n");
+            for ( Map.Entry<String, Integer> entry : mapOfEntitiesLineNumber.entrySet() ) {
+                mapOfEntitiesRanking.put(entry.getKey(),1/(0.9*mapOfEntitiesCounter.get(entry.getKey()) + 0.1 * (1.0/entry.getValue())));
+            }
+            List<Map.Entry<String, Double>> list = new ArrayList<>(mapOfEntitiesRanking.entrySet());
+            list.sort(Map.Entry.comparingByValue());
+            Map<String, Double> result = new LinkedHashMap<>();
+            for (Map.Entry<String, Double> entry : list) {
+                result.put(entry.getKey(), entry.getValue());
+            }
+            int i=0;
+            for ( Map.Entry<String, Double> entry : result.entrySet() ) {
+                entitiesInDoc.append(entry.getKey() + ",");
+                i++;
+                if (i==5) break;
+            }
+            entitiesInDoc.append("\n");
+
             /*
             try {
                 BufferedWriter bufferWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/citiesPosting.txt",true), StandardCharsets.UTF_8));

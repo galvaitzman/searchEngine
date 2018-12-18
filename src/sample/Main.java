@@ -62,12 +62,15 @@ public class Main extends Application {
         parser = new Parse(isStemming,readFile.cities,pathOfCorpusAndStopWord,postingAndDictionary);
         indexer = new Indexer(postingAndDictionary);
         List<Pair<String, String>> readyDocumentsFromReadFile = readFile.documents;
+
         try {
             BufferedWriter bufferWriter1 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/docInfoCityLanguageHeadLine.txt",true), StandardCharsets.UTF_8));
             BufferedWriter bufferWriter2 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/docInfoFrequencyNumberOfUniqueWords.txt",true), StandardCharsets.UTF_8));
+            BufferedWriter bufferWriter3 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/entitiesOfDoc.txt",true), StandardCharsets.UTF_8));
 
             int i = 0;
             for (; i < readFile.filesInFolder.size() / 50 + 1; i += 1) {
+                long start = System.nanoTime();
                 System.out.println(i + " start");
                 readFile.read();
 
@@ -78,7 +81,6 @@ public class Main extends Application {
                     }
                 });
                 t1.start();
-
                 parser.startParsing50Files(readyDocumentsFromReadFile);
                 readFile.documents.clear();
                 parser.termsIndoc.clear();
@@ -90,33 +92,54 @@ public class Main extends Application {
 
                 });
                 t2.start();
+                Thread t3 = new Thread(() -> {
+                    try {
+                        bufferWriter3.write(parser.entitiesInDoc.toString());
+                    } catch (IOException e) {
+                    }
 
+                });
+                t3.start();
                 indexer.index50Files(parser.docsByTerm, i);
                 parser.docsByTerm.clear();
                 t1.join();
                 t2.join();
+                t3.join();
+                System.out.println((System.nanoTime()-start) * Math.pow(10,-9));
             } //5-6 minutes
             bufferWriter1.flush();
             bufferWriter2.flush();
+            bufferWriter3.flush();
             bufferWriter1.close();
             bufferWriter2.close();
-            parser.makePostingForCities();//
+            bufferWriter3.close();
+            long start = System.nanoTime();
+            parser.makePostingForCities();
+            System.out.println((System.nanoTime()-start) * Math.pow(10,-9));
             parser.cities.clear();
             indexer.mergePost("/big");
+            System.out.println((System.nanoTime()-start) * Math.pow(10,-9));
             indexer.mergePost("/small");
+            System.out.println((System.nanoTime()-start) * Math.pow(10,-9));
             indexer.mergeBigWithSmall();
+            System.out.println((System.nanoTime()-start) * Math.pow(10,-9));
             indexer.writeToFinalPosting();
+            System.out.println((System.nanoTime()-start) * Math.pow(10,-9));
             indexer.writeDictionary();
+            System.out.println((System.nanoTime()-start) * Math.pow(10,-9));
             indexer.IDFForBM25();
+            System.out.println((System.nanoTime()-start) * Math.pow(10,-9));
             avdl = parser.totalLengthOfAllDocumentsNotIncludingStopWords/ReadFile.numOfDocs;
             avdl = Math.round(avdl*100.0)/100.0;
-            BufferedWriter bufferWriter3 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/avdl.txt",true), StandardCharsets.UTF_8));
-            bufferWriter3.write(String.valueOf(avdl));
-            bufferWriter3.flush();
-            bufferWriter3.close();
+            BufferedWriter bufferWriter4 = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(postingAndDictionary + "/avdl.txt",true), StandardCharsets.UTF_8));
+            bufferWriter4.write(String.valueOf(avdl));
+            bufferWriter4.flush();
+            bufferWriter4.close();
+            System.out.println((System.nanoTime()-start) * Math.pow(10,-9));
 
         }
-        catch (Exception e) {}
+        catch (Exception e) {
+        }
 
 
     }

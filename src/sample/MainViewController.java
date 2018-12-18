@@ -15,10 +15,8 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
@@ -61,6 +59,7 @@ public class MainViewController extends Application{
             alert.showAndWait();
             return;
         }
+        loadDictionaries();
 
 
     }
@@ -200,10 +199,13 @@ public class MainViewController extends Application{
         Map<String, Integer> mapForDoument = new TreeMap<>();
         Map<String, Integer> mapForCorpus = new TreeMap<>();
         Map<String, Integer> mapForLnes = new TreeMap<>();
-        BufferedReader br1 = new BufferedReader(new FileReader(textPathToSave.getText()+dictionary));
+        BufferedReader br1 = new BufferedReader(new InputStreamReader(new FileInputStream(textPathToSave.getText()+dictionary), StandardCharsets.UTF_8));
         String line1 = br1.readLine();
         while (line1 != null ) {
             String[] x = line1.split("  ");
+            if (x[0].equals("teresa")){
+                System.out.println("sdsad");
+            }
             mapForCorpus.put(x[0],Integer.parseInt(x[2]));
             mapForDoument.put(x[0],Integer.parseInt(x[1]));
             mapForLnes.put(x[0],Integer.parseInt(x[3]));
@@ -222,6 +224,7 @@ public class MainViewController extends Application{
         main.indexer.treeMapForDocsPerTerm = (TreeMap)((mapForDoument));
         main.indexer.treeMapForLineNumberInPosting = (TreeMap)((mapForLnes));
         main.indexer.IDF_BM25_Map = IDF_BM25_Map;
+        System.out.println(1);
         ////////////////////////////////////////////////////////////////////
         /*Set<String> languages = new TreeSet<>();
         BufferedReader br2 = new BufferedReader(new FileReader(currentPath+"/languages.txt"));
@@ -242,6 +245,7 @@ public class MainViewController extends Application{
             line3= br3.readLine();
         }
         main.parser = new Parse(checkBoxStem.isSelected(),cities,textBrowseStopWordAndCorpus.getText(),currentPath);
+        System.out.println("2");
         ////////////////////////////////////////////////////////////////////
         Map <String,Integer> numberOfUniqueTermsInDoc = new HashMap<>();  // key = doc, value= מספר המילים הייחודיות במסמך
         Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc = new HashMap<>(); // key = doc, value = מספר ההופעות של המילה הכי נפוצה במסמך
@@ -254,12 +258,14 @@ public class MainViewController extends Application{
             numberOfAppearancesOfMostCommonTermInDoc.put(x[0],Integer.parseInt(x[1]));
             numberOfUniqueTermsInDoc.put(x[0],Integer.parseInt(x[2]));
             numberOfTotalTermsInDoc.put(x[0],Integer.parseInt(x[3]));
-            line4= br3.readLine();
+            line4= br4.readLine();
         }
+        System.out.println(3);
         /////////////////////////////////////////////////////////////////////
         BufferedReader br5 = new BufferedReader(new FileReader(currentPath+"/avdl.txt"));
         String line5 = br5.readLine();
         main.avdl = Double.parseDouble(line5);
+        System.out.println(4);
         //////////////////////////////////////////////////////////////////////
 
         main.ranker = new Ranker(currentPath,numberOfUniqueTermsInDoc,numberOfAppearancesOfMostCommonTermInDoc,
@@ -269,6 +275,9 @@ public class MainViewController extends Application{
         alert.setHeaderText("Complete successfully");
         alert.setContentText("The dictionaries have been loaded");
         alert.showAndWait();
+        main.ranker.addTermsWithSameSemanticAndTempRankingCurrentQueryTerms(main.parser.QueryParser("Nobel prize winners"));
+        main.ranker.rankEveryDocument();
+
 
     }
 }
