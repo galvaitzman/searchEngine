@@ -352,7 +352,7 @@ public class Indexer {
                     }
                     //bufferedWritersArray[startWithChar-22].write(currentLine + "\n");
                 }
-                else if (startWithChar==36){
+                else {
                     if (!firstdollar){
                         firstdollar = true;
                     }

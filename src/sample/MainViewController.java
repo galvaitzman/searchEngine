@@ -224,7 +224,7 @@ public class MainViewController extends Application{
         main.indexer.treeMapForDocsPerTerm = (TreeMap)((mapForDoument));
         main.indexer.treeMapForLineNumberInPosting = (TreeMap)((mapForLnes));
         main.indexer.IDF_BM25_Map = IDF_BM25_Map;
-        System.out.println(1);
+
         ////////////////////////////////////////////////////////////////////
         /*Set<String> languages = new TreeSet<>();
         BufferedReader br2 = new BufferedReader(new FileReader(currentPath+"/languages.txt"));
@@ -260,12 +260,12 @@ public class MainViewController extends Application{
             numberOfTotalTermsInDoc.put(x[0],Integer.parseInt(x[3]));
             line4= br4.readLine();
         }
-        System.out.println(3);
+
         /////////////////////////////////////////////////////////////////////
         BufferedReader br5 = new BufferedReader(new FileReader(currentPath+"/avdl.txt"));
         String line5 = br5.readLine();
         main.avdl = Double.parseDouble(line5);
-        System.out.println(4);
+
         //////////////////////////////////////////////////////////////////////
 
         main.ranker = new Ranker(currentPath,numberOfUniqueTermsInDoc,numberOfAppearancesOfMostCommonTermInDoc,

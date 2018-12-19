@@ -64,26 +64,12 @@ public class Ranker {
             int currentLineIndex = 0;
             //while (line != null){
             while (currentLineIndex < lineInPosting) {
-                if (line.split("\\^")[0].equals("teresa")){
-                    System.out.println(1);
-                }
-                if (currentLineIndex==5000){
-                    System.out.println("asdsad");
-                }
-                if (currentLineIndex==10000){
-                    System.out.println("asdsad");
-                }
-                if (currentLineIndex==15000){
-                    System.out.println("asdsad");
-                }
-                if (currentLineIndex==20000){
-                    System.out.println("asdsad");
-                }
-                line=br.readLine();
+                br.readLine();
                 currentLineIndex++;
             }
-                System.out.println(4);
-            //line = br.readLine();
+            while (!line.split("\\^")[0].equals(s)){
+                line = br.readLine();
+            }
             String[] docs = line.split("~");
             addToAppearancesCountingOfTermsInDocAndToNumberOfLineOfTermInDocWraper(docs);}
             catch (IOException e){
@@ -124,16 +110,28 @@ public class Ranker {
         List<Map.Entry<String, Double>> list = new ArrayList<>(rankingForDocs.entrySet());
         list.sort(Map.Entry.comparingByValue());
         List<String> result = new ArrayList<>();
+        int counter=0;
         for (Map.Entry<String, Double> entry : list) {
-            result.add(entry.getKey());
+            if (list.size()-counter <= 50) result.add(entry.getKey());
+            counter++;
         }
-        System.out.println(rankingForDocs.get("FBIS4-30404"));
-        System.out.println(rankingForDocs.get("FBIS3-10014"));
+
+
 
         return null;
     }
 
+    public double getCosSim(String doc_name)
+    {
+        int counter = 0;
+        for (String s: queryAfterParsing) {
+            double tf =  ((double) appearancesCountingOfTermsInDoc.get(doc_name)[counter]) / numberOfAppearancesOfMostCommonTermInDoc.get(s);
+        }
+        return 0;
 
+
+
+    }
 
 
 
