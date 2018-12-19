@@ -250,6 +250,8 @@ public class MainViewController extends Application{
         Map <String,Integer> numberOfUniqueTermsInDoc = new HashMap<>();  // key = doc, value= מספר המילים הייחודיות במסמך
         Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc = new HashMap<>(); // key = doc, value = מספר ההופעות של המילה הכי נפוצה במסמך
         Map <String,Integer> numberOfTotalTermsInDoc = new HashMap<>(); //
+        Map <String,Double> weightOfDocNormalizedByLengthOfDoc = new HashMap<>();
+        Map <String,Double> weightOfDocNormalizedByMostCommonWordInDoc = new HashMap<>();
 
         BufferedReader br4 = new BufferedReader(new FileReader(currentPath+"/docInfoFrequencyNumberOfUniqueWords.txt"));
         String line4 = br4.readLine();
@@ -258,6 +260,9 @@ public class MainViewController extends Application{
             numberOfAppearancesOfMostCommonTermInDoc.put(x[0],Integer.parseInt(x[1]));
             numberOfUniqueTermsInDoc.put(x[0],Integer.parseInt(x[2]));
             numberOfTotalTermsInDoc.put(x[0],Integer.parseInt(x[3]));
+            weightOfDocNormalizedByLengthOfDoc.put(x[0],Double.parseDouble(x[5]));
+            weightOfDocNormalizedByMostCommonWordInDoc.put(x[0],Double.parseDouble(x[4]));
+
             line4= br4.readLine();
         }
 
@@ -269,7 +274,7 @@ public class MainViewController extends Application{
         //////////////////////////////////////////////////////////////////////
 
         main.ranker = new Ranker(currentPath,numberOfUniqueTermsInDoc,numberOfAppearancesOfMostCommonTermInDoc,
-                numberOfTotalTermsInDoc,main.indexer,main.readFile,main.parser);
+                numberOfTotalTermsInDoc,main.indexer,main.readFile,main.parser,weightOfDocNormalizedByLengthOfDoc,weightOfDocNormalizedByMostCommonWordInDoc);
         Alert alert = new Alert(Alert.AlertType.INFORMATION);//
         alert.setTitle("Complete successfully");
         alert.setHeaderText("Complete successfully");

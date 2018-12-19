@@ -22,7 +22,8 @@ public class Ranker {
     public Map <String,Integer> numberOfUniqueTermsInDoc;  // key = doc, value= מספר המילים הייחודיות במסמך
     public Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc; // key = doc, value = מספר ההופעות של המילה הכי נפוצה במסמך
     public Map <String,Integer> numberOfTotalTermsInDoc; // key = doc, value = אורך המסמך-כולל כפילויות, לא כולל מילות עצירה
-
+    public Map <String,Double> weightOfDocNormalizedByLengthOfDoc  ;
+    public Map <String,Double> weightOfDocNormalizedByMostCommonWordInDoc;
     //step 1
     public Ranker(String pathOfPostingAndDictionary,
                   Map <String,Integer> numberOfUniqueTermsInDoc,
@@ -30,7 +31,10 @@ public class Ranker {
                   Map <String,Integer> numberOfTotalTermsInDoc,
                   Indexer indexer,
                   ReadFile readFile,
-                  Parse parse){
+                  Parse parse,
+                  Map<String,Double> weightOfDocNormalizedByLengthOfDoc,
+                  Map<String,Double> weightOfDocNormalizedByMostCommonWordInDoc
+                  ){
         this.pathOfPostingAndDictionary = pathOfPostingAndDictionary;
         this.numberOfUniqueTermsInDoc = numberOfUniqueTermsInDoc;
         this.numberOfAppearancesOfMostCommonTermInDoc = numberOfAppearancesOfMostCommonTermInDoc;
@@ -38,6 +42,8 @@ public class Ranker {
         this.indexer = indexer;
         this.parse = parse;
         this.readFile = readFile;
+        this.weightOfDocNormalizedByLengthOfDoc = weightOfDocNormalizedByLengthOfDoc;
+        this.weightOfDocNormalizedByMostCommonWordInDoc = weightOfDocNormalizedByMostCommonWordInDoc;
 
     }
 
@@ -157,7 +163,9 @@ public class Ranker {
             double partA = ((double) ((k1 + 1) * tf)) / (temp + tf);
             //double partB = ((double) ((k2 + 1) * entry.getValue())) / (k2 + entry.getValue());
             if(indexer.IDF_BM25_Map.get(s)!= null) {
-                rank_BM25P += (indexer.IDF_BM25_Map.get(s) * partA);
+                int multiply =1;
+                if (s.charAt(0)>=65 && s.charAt(0)<=90) multiply=2;
+                rank_BM25P += (indexer.IDF_BM25_Map.get(s) * partA)*multiply;
             }
             counter += 1;
         }

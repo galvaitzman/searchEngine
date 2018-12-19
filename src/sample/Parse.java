@@ -703,11 +703,13 @@ public class Parse {
             }
             weightOfDocNormalizeByLengthOfDoc = Math.sqrt(weightOfDocNormalizeByLengthOfDoc);
             weightOfDocNormalizeByMostCommonWord = Math.sqrt(weightOfDocNormalizeByMostCommonWord);
+            weightOfDocNormalizeByLengthOfDoc =  Math.round(weightOfDocNormalizeByLengthOfDoc*100.0)/100.0;
+            weightOfDocNormalizeByMostCommonWord =  Math.round(weightOfDocNormalizeByMostCommonWord*100.0)/100.0;
             docInfo.append(docName + "," + max + "," + termsIndoc.size() + "," + totalTermsNotIncludingStopWords +  "," + weightOfDocNormalizeByMostCommonWord + "," + weightOfDocNormalizeByLengthOfDoc +"\n");
             Map <String,Double> mapOfEntitiesRanking = new TreeMap<>();
             totalLengthOfAllDocumentsNotIncludingStopWords+=totalTermsNotIncludingStopWords;
             for ( Map.Entry<String, Integer> entry : mapOfEntitiesLineNumber.entrySet() ) {
-                mapOfEntitiesRanking.put(entry.getKey(),1/(0.9*mapOfEntitiesCounter.get(entry.getKey()) + 0.1 * (1.0/entry.getValue())));
+                mapOfEntitiesRanking.put(entry.getKey(),1.0/(0.9*mapOfEntitiesCounter.get(entry.getKey()) + 0.1 * (1.0/entry.getValue())));
             }
             List<Map.Entry<String, Double>> list = new ArrayList<>(mapOfEntitiesRanking.entrySet());
             list.sort(Map.Entry.comparingByValue());
