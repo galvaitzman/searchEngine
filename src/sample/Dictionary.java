@@ -1,6 +1,7 @@
 package sample;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class Dictionary {
@@ -12,12 +13,15 @@ public class Dictionary {
     public Map <String,Double> weightOfDocNormalizedByLengthOfDoc  ;
     public Map <String,Double> weightOfDocNormalizedByMostCommonWordInDoc;
     public Map <String,String> cityOfDoc;
+    public Map <String, Set<String>> cityInDoc;
 
     // indexer
     public TreeMap<String,Integer> treeMapForfrequentOfTermInCorpus;
     public TreeMap<String,Integer> treeMapForDocsPerTerm;
     public TreeMap <String,Integer> treeMapForLineNumberInPosting;
     public Map<String, Double> IDF_BM25_Map;
+    public Map <String,String> entities;
+    public Map <String,String> queries;
 
 
     public Dictionary( ){
