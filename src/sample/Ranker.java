@@ -10,15 +10,19 @@ public class Ranker {
 
     int counterOfTermsInQuery = 0 ;
     private String pathOfPostingAndDictionary;
-    Map<String,double []> appearancesCountingOfTermsInDoc =new TreeMap<>();// String=docName, double[] = num of appearences of term 1 from query, num of appearences of term 2 from query...
-    Map<String,int []> numberOfLineOfTermInDoc = new TreeMap<>();// String=docName, String = num of line of term 1 from query in doc, num of line of term 2 from query in doc...
+    //Map<String,double []> appearancesCountingOfTermsInDoc =new TreeMap<>();// String=docName, double[] = num of appearences of term 1 from query, num of appearences of term 2 from query...
+    //Map<String,int []> numberOfLineOfTermInDoc = new TreeMap<>();// String=docName, String = num of line of term 1 from query in doc, num of line of term 2 from query in doc...
     int sizeOfIntegerArray=0;
     int currentIndexInIntegerArray=0;
     Set<String> queryAfterParsing;
-    Indexer indexer;
-    ReadFile readFile;
-    Parse parse;
     Dictionary dictionary;
+    Map <String, Double> rankingOfDocuments;
+    double b = 0.75;
+    double k1 = 1.2;
+    double weightOfBM25 = 0.8;
+    double weightOfCosSim = 0.2;
+
+
     //Map<String, Double> IDF_BM25_Map = new TreeMap<>();
 /*    public Map <String,Integer> numberOfUniqueTermsInDoc;  // key = doc, value= מספר המילים הייחודיות במסמך
     public Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc; // key = doc, value = מספר ההופעות של המילה הכי נפוצה במסמך
@@ -53,6 +57,7 @@ public class Ranker {
 
     //step 2
     public void addTermsWithSameSemanticAndTempRankingCurrentQueryTerms(Set<String> queryAfterParsing) {
+        rankingOfDocuments = new HashMap<>();
         this.queryAfterParsing = queryAfterParsing;
         counterOfTermsInQuery = 0;
         sizeOfIntegerArray = queryAfterParsing.size() * 2 + 1;
@@ -94,60 +99,71 @@ public class Ranker {
     //step 3
     private void addToAppearancesCountingOfTermsInDocAndToNumberOfLineOfTermInDocWraper(String [] docs){
         String [] docInfo;
+        String currentTerm = docs[0].split("\\^")[0];
         docInfo = new String[]{docs[0].split("\\^")[1],docs[0].split("\\^")[2],docs[0].split("\\^")[3]};
-        addToAppearancesCountingOfTermsInDocAndToNumberOfLineOfTermInDoc(docInfo);
+        addToAppearancesCountingOfTermsInDocAndToNumberOfLineOfTermInDoc(docInfo,currentTerm);
         for (int i=1; i<docs.length; i++){
             docInfo = docs[i].split("\\^");
-            addToAppearancesCountingOfTermsInDocAndToNumberOfLineOfTermInDoc(docInfo);
+            addToAppearancesCountingOfTermsInDocAndToNumberOfLineOfTermInDoc(docInfo,currentTerm);
         }
         currentIndexInIntegerArray++;
     }
 
     //step 4
+    /*
     private void addToAppearancesCountingOfTermsInDocAndToNumberOfLineOfTermInDoc(String [] docInfo) {
         if (appearancesCountingOfTermsInDoc.get(docInfo[0])== null){
             appearancesCountingOfTermsInDoc.put(docInfo[0], new double[sizeOfIntegerArray]);
             numberOfLineOfTermInDoc.put(docInfo[0], new int[sizeOfIntegerArray]);
         }
         appearancesCountingOfTermsInDoc.get(docInfo[0])[currentIndexInIntegerArray] = Integer.parseInt(docInfo[1]);
-        numberOfLineOfTermInDoc.get(docInfo[0])[currentIndexInIntegerArray] = Integer.parseInt(docInfo[2]);
+        numberOfLineOfTermInDoc.get(docInfo[0])[currentIndexInIntegerArray] = Integer.parseInt(docInfo[2]);//
+    }*/
+
+    private void addToAppearancesCountingOfTermsInDocAndToNumberOfLineOfTermInDoc(String [] docInfo, String currentTerm) {
+       getBM25ForDoc(docInfo[0],Integer.parseInt(docInfo[1]),currentTerm);
+       getCosSim(docInfo[0],Integer.parseInt(docInfo[1]),currentTerm);
     }
 
-    public List<String> rankEveryDocument (Map<String,Integer>cities) throws IOException {
 
-        Map <String,Double> rankingForDocs = new HashMap<>();
-        for (Map.Entry<String, double[]> insideEntry : appearancesCountingOfTermsInDoc.entrySet()) {
-          //  if (cities.size() > 0) {
-          //      if (cities.get(dictionary.cityOfDoc.get(insideEntry.getKey())) != null){
-              //      rankingForDocs.put(insideEntry.getKey(), getBM25ForDoc(insideEntry.getKey()) * 0.8 + getCosSim(insideEntry.getKey()) * 0.2);
-            //    }
-            //}
-            //else{
-                rankingForDocs.put(insideEntry.getKey(), getBM25ForDoc(insideEntry.getKey()) * 0.8 + getCosSim(insideEntry.getKey()) * 0.2);
 
-            //}
+    public List<String> rankEveryDocument (Map<String,Integer>cities) {
+
+        Map <String,Double> finalRankingForDocs = new HashMap<>();
+        for (Map.Entry<String, Double> insideEntry : rankingOfDocuments.entrySet()) {
+            if (cities.size() > 0) {
+                if (cities.get(dictionary.cityOfDoc.get(insideEntry.getKey())) != null ){
+                    finalRankingForDocs.put(insideEntry.getKey(), insideEntry.getValue());
+                }
+                else{
+                    boolean foundCity = false;
+                    for (Map.Entry<String,Integer> entry: cities.entrySet()){
+                        if (dictionary.cityInDoc.get(insideEntry.getKey()) != null && dictionary.cityInDoc.get(insideEntry.getKey()).contains(entry.getKey())) {
+                            foundCity = true;
+                            break;
+                        }
+                    }
+                    if (foundCity) finalRankingForDocs.put(insideEntry.getKey(), insideEntry.getValue());
+                }
+            }
+            else{
+                finalRankingForDocs.put(insideEntry.getKey(), insideEntry.getValue());
+            }
         }
-        List<Map.Entry<String, Double>> list = new ArrayList<>(rankingForDocs.entrySet());
+
+        List<Map.Entry<String, Double>> list = new ArrayList<>(finalRankingForDocs.entrySet());
         list.sort(Map.Entry.comparingByValue());
         List<String> result = new ArrayList<>();
-        BufferedWriter resBufferWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("C:/Users/gvaitzma/IdeaProjects/results.txt",true), StandardCharsets.UTF_8));
         int counter = 0;
         for (Map.Entry<String, Double> entry : list) {
-            if (list.size() - counter <= 50) {
-
-                    resBufferWriter.append("374" + " 0 "+ entry.getKey()+ " " +counter +" " + entry.getValue() + " test\n" );
-
+            if (list.size() - counter <= 100) {
                 result.add(entry.getKey());
-                System.out.println(entry.getKey() +" "+entry.getValue());
+                System.out.println(entry.getKey());
             }
             counter++;
         }
 
-
-        resBufferWriter.flush();
-        resBufferWriter.close();
-
-        return null;
+        return result;
     }
 
 
@@ -156,35 +172,49 @@ public class Ranker {
      * @param doc_name
      * @return
      */
+    /*
     public double getCosSim(String doc_name)
     {
         int counter = 0;
         double up = 0;
         for (String s: queryAfterParsing) {
-            up +=  ( appearancesCountingOfTermsInDoc.get(doc_name)[counter]) / dictionary.numberOfAppearancesOfMostCommonTermInDoc.get(doc_name);
-            counter += 1;
+            up +=  ( appearancesCountingOfTermsInDoc.get(doc_name)[counter]) / dictionary.numberOfAppearancesOfMostCommonTermInDoc.get(s);
         }
         double down = dictionary.weightOfDocNormalizedByMostCommonWordInDoc.get(doc_name) * Math.sqrt(queryAfterParsing.size());
 
         return up / down;
     }
+    */
+
+    public void getCosSim(String doc_name,int numberOfAppearancesOfCurentTermInDoc, String currentTerm)
+    {
+        //int counter = 0;
+        double up = 0;
+        //for (String s: queryAfterParsing) {
+            up +=  numberOfAppearancesOfCurentTermInDoc / dictionary.numberOfAppearancesOfMostCommonTermInDoc.get(doc_name);
+        //}
+        double down = dictionary.weightOfDocNormalizedByMostCommonWordInDoc.get(doc_name) * Math.sqrt(queryAfterParsing.size());
+
+        if (rankingOfDocuments.get(doc_name) == null){
+            rankingOfDocuments.put(doc_name,(up/down)*weightOfCosSim);
+        }
+        else{
+            rankingOfDocuments.put(doc_name, rankingOfDocuments.get(doc_name) + (up/down)*weightOfCosSim);
+        }
+
+    }
 
 
 
-    public double getBM25ForDoc(String doc_name) {
+    public void getBM25ForDoc(String doc_name,int numberOfAppearancesOfCurentTermInDoc, String currentTerm) {
         // c(w,d) - Map<String,int []> appearancesCountingOfTermsInDoc =new TreeMap<>();// String=docName, String = num of appearences of term 1 from query, num of appearences of term 2 from query...
         //M-  ReadFile.numOfDocs;
         //|d| and avdl  public Map <String,Integer> numberOfTotalTermsInDoc; // key = doc, value = אורך המסמך-כולל כפילויות, לא כולל מילות עצירה
         // df(2)- מספר מסמכים שונים שמופיע בטרם - TreeMap<String,Integer> treeMapForDocsPerTerm; // key = term, value = מספר המסמכים השונים בהם מופיע הביטוי
 
-        double rank_BM25P = 0;
-        //  double idf;
-        double b = 0.75;
-        double k1 = 1.2;
-        double k2 = 1;
+        /*
         double d_avdl = (double) dictionary.numberOfTotalTermsInDoc.get(doc_name) / Main.avdl;
         double temp = k1 * ((1 - b) + b * d_avdl);
-
         int counter = 0;
         for (String s : queryAfterParsing) {
             double tf = ((double) appearancesCountingOfTermsInDoc.get(doc_name)[counter]); /// numberOfAppearancesOfMostCommonTermInDoc.get(doc_name);
@@ -194,7 +224,26 @@ public class Ranker {
                 rank_BM25P += (dictionary.IDF_BM25_Map.get(s) * partA);
             counter += 1;
         }
-        return rank_BM25P;
+        return rank_BM25P;*/
+        double rank_BM25P = 0;
+        double d_avdl = (double) dictionary.numberOfTotalTermsInDoc.get(doc_name) / Main.avdl;
+        double temp = k1 * ((1 - b) + b * d_avdl);
+        int counter = 0;
+        //for (String s : queryAfterParsing) {
+            double tf = numberOfAppearancesOfCurentTermInDoc; /// numberOfAppearancesOfMostCommonTermInDoc.get(doc_name);
+            double partA = ((double) ((k1 + 1) * tf)) / (temp + tf);
+            //double partB = ((double) ((k2 + 1) * entry.getValue())) / (k2 + entry.getValue());
+            //if (dictionary.IDF_BM25_Map.get(s) != null)
+            rank_BM25P += (dictionary.IDF_BM25_Map.get(currentTerm) * partA);
+            //counter += 1;
+        //}
+        if (rankingOfDocuments.get(doc_name) == null){
+            rankingOfDocuments.put(doc_name,rank_BM25P*weightOfBM25);
+        }
+        else{
+            rankingOfDocuments.put(doc_name,rankingOfDocuments.get(doc_name) + rank_BM25P*weightOfBM25);
+        }
+
 
             // maybe to calculate idf and also tf- in the indexer -  maybe to change the calculate of idf
             //idf = Math.log(((double) ReadFile.numOfDocs + 1) / (treeMapForDocsPerTerm.get(entry.getValue())));

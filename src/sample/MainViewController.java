@@ -40,6 +40,8 @@ public class MainViewController extends Application{
     public Text lableTime;
     public Button buttonLoaDicToMemory;
     public CheckComboBox <String> comboBoxCities;
+    public javafx.scene.control.CheckBox checkBoxSemantic;
+
 
 
     @Override
@@ -301,16 +303,55 @@ public class MainViewController extends Application{
 
         }
         ///////////////////////////////////////////////////////////////////////
+        Map <String,Set<String>> cityInDoc = new HashMap<>(); // key = docName, value = cities in doc
+        BufferedReader br8 = new BufferedReader(new FileReader(currentPath+"/citiesPosting.txt"));
+        String line8 = br8.readLine();
+        for (String s: cities){
+            if (line8.equals("No appearences of this city in the corpus\n"))continue;
+            String [] x = line8.split("~");
+            for (String st:x){
+                if (cityInDoc.get(st.split(",")[0]) == null)
+                    cityInDoc.put(st.split(",")[0],new HashSet<>());
+                cityInDoc.get(st.split(",")[0]).add(s);
+            }
+            line8 = br8.readLine();
+            if (line8 == null) break;
+        }
+        /////////////////////////////////////////////////////////////////////
+        Map <String,String> entities = new HashMap<>();
+        BufferedReader br9 = new BufferedReader(new FileReader(currentPath+"/entitiesOfDoc.txt"));
+        String line9 = br9.readLine();
+        while (line9 != null){
+            String [] x = line9.split("~");
+            if (x.length>1) entities.put(x[0],x[1]);
+            else entities.put(x[0],"no entities in this document");
+            line9 = br9.readLine();
+        }
+        //////////////////////////////////////////////////////////////////////
+        Map <String,String> queries = new HashMap<>();
+        BufferedReader br10 = new BufferedReader(new FileReader(currentPath+"/queries.txt"));
+        String line10 = br10.readLine();
+        String number="";
+        String title="";
+        while (line10 != null){
+            if (line10.contains("<title>")) ;
+            line10 = br10.readLine();
+        }
+        ////////////////////////////////////////////////////////////////////
         dictionary.numberOfUniqueTermsInDoc = numberOfUniqueTermsInDoc;
         dictionary.numberOfAppearancesOfMostCommonTermInDoc = numberOfAppearancesOfMostCommonTermInDoc;
         dictionary.numberOfTotalTermsInDoc = numberOfTotalTermsInDoc;
         dictionary.weightOfDocNormalizedByLengthOfDoc = weightOfDocNormalizedByLengthOfDoc;
         dictionary.weightOfDocNormalizedByMostCommonWordInDoc = weightOfDocNormalizedByMostCommonWordInDoc;
         dictionary.cityOfDoc = cityOfDoc;
+        dictionary.cityInDoc = cityInDoc;
+        dictionary.entities=entities;
+        dictionary.queries = queries;
+
 
 
         main.searcher = new Searcher();
-        main.ranker = new Ranker(currentPath,dictionary);
+        main.searcher.ranker = new Ranker(currentPath,dictionary);
 /*        main.ranker = new Ranker(currentPath,numberOfUniqueTermsInDoc,numberOfAppearancesOfMostCommonTermInDoc,
                 numberOfTotalTermsInDoc,main.indexer,main.readFile,main.parser,weightOfDocNormalizedByLengthOfDoc,weightOfDocNormalizedByMostCommonWordInDoc);*/
         Alert alert = new Alert(Alert.AlertType.INFORMATION);//
@@ -340,12 +381,13 @@ public class MainViewController extends Application{
     }
 
     public void startQuery(ActionEvent actionEvent) throws IOException {
+
         Map <String, Integer> cities = new HashMap<>();
         ObservableList<Integer> data2 = comboBoxCities.getCheckModel().getCheckedIndices();
         for (Integer i: data2){
             cities.put(comboBoxCities.getItems().get(i),i);
         }
-        main.ranker.addTermsWithSameSemanticAndTempRankingCurrentQueryTerms(main.parser.QueryParser("Nobel prize winners",false));
-        main.ranker.rankEveryDocument(cities);
+
+        main.searcher.rankCurrentQuery(main.parser.QueryParser("Nobel prize winners",checkBoxSemantic.isSelected()),cities);
     }
 }

@@ -179,14 +179,15 @@ public class Parse {
             else if (docsByTerm.get(str.toLowerCase()) != null) str = str.toLowerCase();
             else str = str.toUpperCase();
             if (str.charAt(0)>=65 && str.charAt(0)<=90 && !stopWords.contains(str.toLowerCase())) {
-                if (mapOfEntitiesLineNumber.get(str) == null){
-                    counterForEntities++;
-                    mapOfEntitiesLineNumber.put(str,currentLine);
-                    mapOfEntitiesCounter.put(str,1);
+                if (!str.contains(":")) {
+                    if (mapOfEntitiesLineNumber.get(str) == null) {
+                        counterForEntities++;
+                        mapOfEntitiesLineNumber.put(str, currentLine);
+                        mapOfEntitiesCounter.put(str, 1);
 
-                }
-                else{
-                    mapOfEntitiesCounter.put(str,mapOfEntitiesCounter.get(str)+1);
+                    } else {
+                        mapOfEntitiesCounter.put(str, mapOfEntitiesCounter.get(str) + 1);
+                    }
                 }
             }
             directAddingTerm(str,currentIndexInDoc);
@@ -719,7 +720,7 @@ public class Parse {
             }
             int i=0;
             for ( Map.Entry<String, Double> entry : result.entrySet() ) {
-                entitiesInDoc.append(entry.getKey() + ",");
+                entitiesInDoc.append(entry.getKey() + "-" + entry.getValue() +  ",");
                 i++;
                 if (i==5) break;
             }

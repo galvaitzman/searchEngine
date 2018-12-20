@@ -34,8 +34,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
-
         this.primaryStage = primaryStage;
         primaryStage.setTitle("Search engine - Goni and Gal");
         FXMLLoader fxmlLoader = new FXMLLoader();
