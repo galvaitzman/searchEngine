@@ -8,6 +8,7 @@
 <?import javafx.scene.paint.*?>
 <?import javafx.scene.text.*?>
 
+<?import org.controlsfx.control.CheckComboBox?>
 <AnchorPane prefHeight="618.0" prefWidth="937.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.MainViewController">
     <children>
         <ImageView fx:id="lableNumOFDoc" fitHeight="690.0" fitWidth="1000.0" pickOnBounds="true" AnchorPane.bottomAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -44,6 +45,29 @@
                </stops>
             </LinearGradient>
          </stroke></Text>
+        <TextField fx:id="query" layoutX="100.0" layoutY="270.0" prefHeight="39.0" prefWidth="330.0" />
+        <Text fill="WHITE" fontSmoothingType="LCD" layoutX="50.0" layoutY="300.0" strokeType="OUTSIDE" strokeWidth="0.0" text="query">
+            <font>
+                <Font name="System Bold" size="18.0" />
+            </font>
+            <stroke>
+                <LinearGradient endX="1.0" endY="1.0">
+                    <stops>
+                        <Stop color="BLACK" />
+                        <Stop color="WHITE" offset="1.0" />
+                    </stops>
+                </LinearGradient>
+            </stroke></Text>
+        <CheckComboBox fx:id="comboBoxCities" layoutX="0.0" layoutY="350.0" prefWidth="150.0"  />
+        <Button fx:id="buttonStartQuery" layoutX="170.0" layoutY="325.0" mnemonicParsing="false"  prefHeight="41.0" prefWidth="190.0" text="Start Query" onAction="#startQuery" textOverrun="WORD_ELLIPSIS">
+            <font>
+                <Font size="16.0" />
+            </font>
+        </Button>
+        <Text fill="WHITE" fontSmoothingType="LCD" layoutX="50.0" layoutY="345.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Cities">
+            <font>
+                <Font name="System Bold" size="19.0" />
+            </font></Text>
       <Text fill="WHITE" fontSmoothingType="LCD" layoutX="352.0" layoutY="465.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Language">
          <font>
             <Font name="System Bold" size="19.0" />
@@ -72,11 +96,12 @@
             <Font name="Comic Sans MS Bold Italic" size="70.0" />
          </font>
       </Text>
-      <Button fx:id="buttonStart" layoutX="405.0" layoutY="310.0" mnemonicParsing="false" onAction="#startBuild" prefHeight="41.0" prefWidth="190.0" text="Start" textOverrun="WORD_ELLIPSIS">
+      <Button fx:id="buttonStart" layoutX="650" layoutY="310.0" mnemonicParsing="false" onAction="#startBuild" prefHeight="41.0" prefWidth="190.0" text="Start" textOverrun="WORD_ELLIPSIS">
          <font>
             <Font size="16.0" />
          </font>
       </Button>
+
       <ComboBox fx:id="comboBoxLanguage" layoutX="463.0" layoutY="444.0" prefWidth="150.0" visibleRowCount="14" />
       <Text fill="WHITE" fontSmoothingType="LCD" layoutX="67.0" layoutY="421.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="Number of docs">
          <font>
