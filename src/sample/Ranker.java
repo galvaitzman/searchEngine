@@ -18,14 +18,15 @@ public class Ranker {
     Indexer indexer;
     ReadFile readFile;
     Parse parse;
+    Dictionary dictionary;
     //Map<String, Double> IDF_BM25_Map = new TreeMap<>();
-    public Map <String,Integer> numberOfUniqueTermsInDoc;  // key = doc, value= מספר המילים הייחודיות במסמך
+/*    public Map <String,Integer> numberOfUniqueTermsInDoc;  // key = doc, value= מספר המילים הייחודיות במסמך
     public Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc; // key = doc, value = מספר ההופעות של המילה הכי נפוצה במסמך
     public Map <String,Integer> numberOfTotalTermsInDoc; // key = doc, value = אורך המסמך-כולל כפילויות, לא כולל מילות עצירה
     public Map <String,Double> weightOfDocNormalizedByLengthOfDoc  ;
     public Map <String,Double> weightOfDocNormalizedByMostCommonWordInDoc;
-    //step 1
-    public Ranker(String pathOfPostingAndDictionary,
+    //step 1*/
+  /*  public Ranker(String pathOfPostingAndDictionary,
                   Map <String,Integer> numberOfUniqueTermsInDoc,
                   Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc,
                   Map <String,Integer> numberOfTotalTermsInDoc,
@@ -34,9 +35,12 @@ public class Ranker {
                   Parse parse,
                   Map<String,Double> weightOfDocNormalizedByLengthOfDoc,
                   Map<String,Double> weightOfDocNormalizedByMostCommonWordInDoc
-                  ){
+                  ){*/
+
+    public Ranker(String pathOfPostingAndDictionary, Dictionary dictionary) {
         this.pathOfPostingAndDictionary = pathOfPostingAndDictionary;
-        this.numberOfUniqueTermsInDoc = numberOfUniqueTermsInDoc;
+        this.dictionary =dictionary;
+      /*  this.numberOfUniqueTermsInDoc = numberOfUniqueTermsInDoc;
         this.numberOfAppearancesOfMostCommonTermInDoc = numberOfAppearancesOfMostCommonTermInDoc;
         this.numberOfTotalTermsInDoc = numberOfTotalTermsInDoc;
         this.indexer = indexer;
@@ -44,7 +48,7 @@ public class Ranker {
         this.readFile = readFile;
         this.weightOfDocNormalizedByLengthOfDoc = weightOfDocNormalizedByLengthOfDoc;
         this.weightOfDocNormalizedByMostCommonWordInDoc = weightOfDocNormalizedByMostCommonWordInDoc;
-
+*/
     }
 
     //step 2
@@ -59,11 +63,11 @@ public class Ranker {
             if (startingChar >= 65 && startingChar <= 90) numOfPosting = startingChar - 54;
             else if (startingChar >= 97 && startingChar <= 122) numOfPosting = startingChar - 86;
             else if (startingChar >= 48 && startingChar <= 57) numOfPosting = startingChar - 47;
-            if (indexer.treeMapForLineNumberInPosting.get(s) == null){
+            if (dictionary.treeMapForLineNumberInPosting.get(s) == null){
                 currentIndexInIntegerArray++;
                 continue;
             }
-            int lineInPosting = indexer.treeMapForLineNumberInPosting.get(s) + 1;
+            int lineInPosting = dictionary.treeMapForLineNumberInPosting.get(s) + 1;
             try{
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(pathOfPostingAndDictionary + "/" + numOfPosting + ".txt"), StandardCharsets.UTF_8));
             String line="";
@@ -121,22 +125,25 @@ public class Ranker {
             if (list.size()-counter <= 50) result.add(entry.getKey());
             counter++;
         }
-
-
-
         return null;
     }
 
+
+    /**
+     * normalize by most common word in doc
+     * @param doc_name
+     * @return
+     */
     public double getCosSim(String doc_name)
     {
         int counter = 0;
+        double up = 0;
         for (String s: queryAfterParsing) {
-            double tf =  ((double) appearancesCountingOfTermsInDoc.get(doc_name)[counter]) / numberOfAppearancesOfMostCommonTermInDoc.get(s);
+            up +=  ( appearancesCountingOfTermsInDoc.get(doc_name)[counter]) / dictionary.numberOfAppearancesOfMostCommonTermInDoc.get(s);
         }
-        return 0;
+        double down = dictionary.weightOfDocNormalizedByMostCommonWordInDoc.get(doc_name) * Math.sqrt(queryAfterParsing.size());
 
-
-
+        return up / down;
     }
 
 
@@ -152,7 +159,7 @@ public class Ranker {
         double b = 0.75;
         double k1 = 1.2;
         double k2 = 1;
-        double d_avdl = (double) numberOfTotalTermsInDoc.get(doc_name) / Main.avdl;
+        double d_avdl = (double) dictionary.numberOfTotalTermsInDoc.get(doc_name) / Main.avdl;
         double temp = k1 * ((1 - b) + b * d_avdl);
 
         int counter = 0;
@@ -162,10 +169,10 @@ public class Ranker {
             double tf = ((double) appearancesCountingOfTermsInDoc.get(doc_name)[counter]); /// numberOfAppearancesOfMostCommonTermInDoc.get(doc_name);
             double partA = ((double) ((k1 + 1) * tf)) / (temp + tf);
             //double partB = ((double) ((k2 + 1) * entry.getValue())) / (k2 + entry.getValue());
-            if(indexer.IDF_BM25_Map.get(s)!= null) {
+            if(dictionary.IDF_BM25_Map.get(s)!= null) {
                 int multiply =1;
                 if (s.charAt(0)>=65 && s.charAt(0)<=90) multiply=2;
-                rank_BM25P += (indexer.IDF_BM25_Map.get(s) * partA)*multiply;
+                rank_BM25P += (dictionary.IDF_BM25_Map.get(s) * partA)*multiply;
             }
             counter += 1;
         }
