@@ -41,6 +41,7 @@ public class MainViewController extends Application{
     public Button buttonLoaDicToMemory;
     public CheckComboBox <String> comboBoxCities;
     public javafx.scene.control.CheckBox checkBoxSemantic;
+    public TextField query;
 
 
 
@@ -334,7 +335,19 @@ public class MainViewController extends Application{
         String number="";
         String title="";
         while (line10 != null){
-            if (line10.contains("<title>")) ;
+            if (line10.contains("<num> Number:")){
+                number = line10.substring(line10.indexOf("<num> Number:")+14);
+            }
+            else if (line10.contains("<title>")){
+                title = line10.substring(line10.indexOf("<title>")+8);
+            }
+            if (!title.equals("") && !number.equals("")){
+                if (number.endsWith(" ") || number.endsWith("\n") ) number = number.substring(0,number.length()-1);
+                if (title.endsWith(" ") || title.endsWith("\n") ) title = title.substring(0,title.length()-1);
+                queries.put(number,title);
+                number="";
+                title="";
+            }
             line10 = br10.readLine();
         }
         ////////////////////////////////////////////////////////////////////
@@ -382,12 +395,14 @@ public class MainViewController extends Application{
 
     public void startQuery(ActionEvent actionEvent) throws IOException {
 
+
         Map <String, Integer> cities = new HashMap<>();
         ObservableList<Integer> data2 = comboBoxCities.getCheckModel().getCheckedIndices();
         for (Integer i: data2){
             cities.put(comboBoxCities.getItems().get(i),i);
         }
-
-        main.searcher.rankCurrentQuery(main.parser.QueryParser("Nobel prize winners",checkBoxSemantic.isSelected()),cities);
+        long start = System.nanoTime();
+        main.searcher.rankCurrentQuery(main.parser.QueryParser(query.getText(),checkBoxSemantic.isSelected()),cities);
+        System.out.println((System.nanoTime()-start)* Math.pow(10,-9));
     }
 }
