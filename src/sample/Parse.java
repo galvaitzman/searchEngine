@@ -778,69 +778,68 @@ public class Parse {
      * part B
      *
      */
-    public Set<String> QueryParser(String query)
+    public Set<String> QueryParser(String query,boolean isSemantic)
     {
-        Set <String> finalSet = null;
+        Set <String> finalSet = new HashSet<>();
         isQuery = true;
         String query2 = "";
         String [] queryArray = query.split(" ");
-        String allWordstoAPI = "";
-        for (int i=0; i<queryArray.length; i++) {
-            if (i == 0) {
-                allWordstoAPI = queryArray[0];
-            } else {
-                allWordstoAPI = allWordstoAPI + "+" + queryArray[i];
+        if (isSemantic) {
+            String allWordstoAPI = "";
+            for (int i = 0; i < queryArray.length; i++) {
+                if (i == 0) {
+                    allWordstoAPI = queryArray[0];
+                } else {
+                    allWordstoAPI = allWordstoAPI + "+" + queryArray[i];
+                }
             }
-        }
-        try {
-            query2 = "";
-            String urlString = "https://api.datamuse.com/words?ml=" + allWordstoAPI;
-            URL url = new URL(urlString);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer content = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-            in.close();
-            String detailsOfCity = content.toString();
-            int BracketCount = 0;
-            List<String> JsonItems = new ArrayList<>();
-            StringBuilder Json = new StringBuilder();
-            int currentCharIndex = 0;
-            for(char c:detailsOfCity.toCharArray())
-            {
-                if (currentCharIndex == 0 || currentCharIndex == detailsOfCity.length()-1){
+            try {
+                query2 = "";
+                String urlString = "https://api.datamuse.com/words?ml=" + allWordstoAPI;
+                URL url = new URL(urlString);
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("GET");
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuffer content = new StringBuffer();
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
+                in.close();
+                String detailsOfCity = content.toString();
+                int BracketCount = 0;
+                List<String> JsonItems = new ArrayList<>();
+                StringBuilder Json = new StringBuilder();
+                int currentCharIndex = 0;
+                for (char c : detailsOfCity.toCharArray()) {
+                    if (currentCharIndex == 0 || currentCharIndex == detailsOfCity.length() - 1) {
+                        currentCharIndex++;
+                        continue;
+                    }
+                    if (c == '{')
+                        ++BracketCount;
+                    else if (c == '}')
+                        --BracketCount;
+                    Json.append(c);
+
+                    if (BracketCount == 0 && c != ' ') {
+                        if (!Json.toString().equals(",")) JsonItems.add(Json.toString());
+                        Json = new StringBuilder();
+                    }
                     currentCharIndex++;
-                    continue;
                 }
-                if (c == '{')
-                    ++BracketCount;
-                else if (c == '}')
-                    --BracketCount;
-                Json.append(c);
-
-                if (BracketCount == 0 && c != ' ')
-                {
-                    if (!Json.toString().equals(","))JsonItems.add(Json.toString());
-                    Json = new StringBuilder();
+                ObjectMapper objectMapper = new ObjectMapper();
+                for (int j = 0; j < JsonItems.size(); j++) {
+                    Word word = objectMapper.readValue(JsonItems.get(j), Word.class);
+                    query2 = query2 + " " + word.word.toUpperCase() + " " + word.word.toLowerCase();
                 }
-                currentCharIndex++;
-            }
-            ObjectMapper objectMapper = new ObjectMapper();
-            for (int j=0; j<JsonItems.size(); j++){
-                Word word = objectMapper.readValue(JsonItems.get(j), Word.class);
-                query2 = query2 + " " +  word.word.toUpperCase() + " " + word.word.toLowerCase();
-            }
-            con.disconnect();
-            parsingTextToText(query2);
-            finalSet = new HashSet(queryTerms);
-        }
-        catch (Exception e) {
+                con.disconnect();
+                parsingTextToText(query2);
+                finalSet = new HashSet(queryTerms);
+            } catch (Exception e) {
 
+            }
         }
         String queryWithBigLettersAndSmallLetters="";
         for(String s:queryArray){

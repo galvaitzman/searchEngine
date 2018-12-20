@@ -11,6 +11,7 @@ public class Dictionary {
     public Map <String,Integer> numberOfTotalTermsInDoc; // key = doc, value = אורך המסמך-כולל כפילויות, לא כולל מילות עצירה
     public Map <String,Double> weightOfDocNormalizedByLengthOfDoc  ;
     public Map <String,Double> weightOfDocNormalizedByMostCommonWordInDoc;
+    public Map <String,String> cityOfDoc;
 
     // indexer
     public TreeMap<String,Integer> treeMapForfrequentOfTermInCorpus;

@@ -10,7 +10,7 @@ public class Ranker {
 
     int counterOfTermsInQuery = 0 ;
     private String pathOfPostingAndDictionary;
-    Map<String,double []> appearancesCountingOfTermsInDoc =new TreeMap<>();// String=docName, String = num of appearences of term 1 from query, num of appearences of term 2 from query...
+    Map<String,double []> appearancesCountingOfTermsInDoc =new TreeMap<>();// String=docName, double[] = num of appearences of term 1 from query, num of appearences of term 2 from query...
     Map<String,int []> numberOfLineOfTermInDoc = new TreeMap<>();// String=docName, String = num of line of term 1 from query in doc, num of line of term 2 from query in doc...
     int sizeOfIntegerArray=0;
     int currentIndexInIntegerArray=0;
@@ -77,6 +77,7 @@ public class Ranker {
                 br.readLine();
                 currentLineIndex++;
             }
+            line = br.readLine();
             while (!line.split("\\^")[0].equals(s)){
                 line = br.readLine();
             }
@@ -112,19 +113,34 @@ public class Ranker {
         numberOfLineOfTermInDoc.get(docInfo[0])[currentIndexInIntegerArray] = Integer.parseInt(docInfo[2]);//
     }
 
-    public List<String> rankEveryDocument () {
+    public List<String> rankEveryDocument (Map<String,Integer>cities) {
+
         Map <String,Double> rankingForDocs = new HashMap<>();
         for (Map.Entry<String, double[]> insideEntry : appearancesCountingOfTermsInDoc.entrySet()) {
-            rankingForDocs.put(insideEntry.getKey(),getBM25ForDoc(insideEntry.getKey()));
+            if (cities.size() > 0) {
+                if (cities.get(dictionary.cityOfDoc.get(insideEntry.getKey())) != null){
+                    rankingForDocs.put(insideEntry.getKey(), getBM25ForDoc(insideEntry.getKey()) * 0.8 + getCosSim(insideEntry.getKey()) * 0.2);
+                }
+            }
+            else{
+                rankingForDocs.put(insideEntry.getKey(), getBM25ForDoc(insideEntry.getKey()) * 0.8 + getCosSim(insideEntry.getKey()) * 0.2);
+
+            }
         }
         List<Map.Entry<String, Double>> list = new ArrayList<>(rankingForDocs.entrySet());
         list.sort(Map.Entry.comparingByValue());
         List<String> result = new ArrayList<>();
-        int counter=0;
+        int counter = 0;
         for (Map.Entry<String, Double> entry : list) {
-            if (list.size()-counter <= 50) result.add(entry.getKey());
+            if (list.size() - counter <= 100) {
+                result.add(entry.getKey());
+                System.out.println(entry.getKey());
+            }
             counter++;
         }
+
+
+
         return null;
     }
 
@@ -155,7 +171,7 @@ public class Ranker {
         // df(2)- מספר מסמכים שונים שמופיע בטרם - TreeMap<String,Integer> treeMapForDocsPerTerm; // key = term, value = מספר המסמכים השונים בהם מופיע הביטוי
 
         double rank_BM25P = 0;
-      //  double idf;
+        //  double idf;
         double b = 0.75;
         double k1 = 1.2;
         double k2 = 1;
@@ -163,21 +179,18 @@ public class Ranker {
         double temp = k1 * ((1 - b) + b * d_avdl);
 
         int counter = 0;
-        for (String s: queryAfterParsing) {
-            // maybe to calculate idf and also tf- in the indexer -  maybe to change the calculate of idf
-            //idf = Math.log(((double) ReadFile.numOfDocs + 1) / (treeMapForDocsPerTerm.get(entry.getValue())));
+        for (String s : queryAfterParsing) {
             double tf = ((double) appearancesCountingOfTermsInDoc.get(doc_name)[counter]); /// numberOfAppearancesOfMostCommonTermInDoc.get(doc_name);
             double partA = ((double) ((k1 + 1) * tf)) / (temp + tf);
             //double partB = ((double) ((k2 + 1) * entry.getValue())) / (k2 + entry.getValue());
-            if(dictionary.IDF_BM25_Map.get(s)!= null) {
-                int multiply =1;
-                if (s.charAt(0)>=65 && s.charAt(0)<=90) multiply=2;
-                rank_BM25P += (dictionary.IDF_BM25_Map.get(s) * partA)*multiply;
-            }
+            if (dictionary.IDF_BM25_Map.get(s) != null)
+                rank_BM25P += (dictionary.IDF_BM25_Map.get(s) * partA);
             counter += 1;
         }
         return rank_BM25P;
 
+            // maybe to calculate idf and also tf- in the indexer -  maybe to change the calculate of idf
+            //idf = Math.log(((double) ReadFile.numOfDocs + 1) / (treeMapForDocsPerTerm.get(entry.getValue())));
     }
 
         /**

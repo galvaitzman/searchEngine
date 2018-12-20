@@ -2,6 +2,7 @@ package sample;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -14,6 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.controlsfx.control.CheckComboBox;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -37,6 +39,7 @@ public class MainViewController extends Application{
     public Text lableNumTerms;
     public Text lableTime;
     public Button buttonLoaDicToMemory;
+    public CheckComboBox <String> comboBoxCities;
 
 
     @Override
@@ -286,11 +289,25 @@ public class MainViewController extends Application{
         main.avdl = Double.parseDouble(line5);
 
         //////////////////////////////////////////////////////////////////////
+        Map <String,String> cityOfDoc = new HashMap<>();
+        BufferedReader br7 = new BufferedReader(new FileReader(currentPath+"/docInfoCityLanguageHeadLine.txt"));
+        String line7 = br7.readLine();
+        while (line7 != null){
+            String [] x = line7.split(",");
+            if (x.length > 1){
+                cityOfDoc.put(x[0],x[1]);
+            }
+            line7 = br7.readLine();
+
+        }
+        ///////////////////////////////////////////////////////////////////////
         dictionary.numberOfUniqueTermsInDoc = numberOfUniqueTermsInDoc;
         dictionary.numberOfAppearancesOfMostCommonTermInDoc = numberOfAppearancesOfMostCommonTermInDoc;
         dictionary.numberOfTotalTermsInDoc = numberOfTotalTermsInDoc;
         dictionary.weightOfDocNormalizedByLengthOfDoc = weightOfDocNormalizedByLengthOfDoc;
         dictionary.weightOfDocNormalizedByMostCommonWordInDoc = weightOfDocNormalizedByMostCommonWordInDoc;
+        dictionary.cityOfDoc = cityOfDoc;
+
 
 
         main.ranker = new Ranker(currentPath,dictionary);
@@ -301,9 +318,34 @@ public class MainViewController extends Application{
         alert.setHeaderText("Complete successfully");
         alert.setContentText("The dictionaries have been loaded");
         alert.showAndWait();
-        main.ranker.addTermsWithSameSemanticAndTempRankingCurrentQueryTerms(main.parser.QueryParser("Nobel prize winners"));
-        main.ranker.rankEveryDocument();
+        ObservableList<String> data = FXCollections.observableArrayList(cities);
+        comboBoxCities.getItems().addAll(data);
 
 
+
+
+        // and listen to the relevant events (e.g. when the selected indices or
+        // selected items change).
+        /*checkComboBox.getCheckModel().getSelectedItems().addListener(new ListChangeListener<String>() {
+            public void onChanged(ListChangeListener.Change<? extends String> c) {
+                System.out.println(checkComboBox.getCheckModel().getSelectedItems());
+            }
+        });
+    }*/
+
+
+
+
+
+    }
+
+    public void startQuery(ActionEvent actionEvent) throws IOException {
+        Map <String, Integer> cities = new HashMap<>();
+        ObservableList<Integer> data2 = comboBoxCities.getCheckModel().getCheckedIndices();
+        for (Integer i: data2){
+            cities.put(comboBoxCities.getItems().get(i),i);
+        }
+        main.ranker.addTermsWithSameSemanticAndTempRankingCurrentQueryTerms(main.parser.QueryParser("Nobel prize winners",false));
+        main.ranker.rankEveryDocument(cities);
     }
 }
