@@ -57,7 +57,7 @@ public class MainViewController extends Application{
             alert.setTitle("Message");
             alert.setContentText("Dictionary already exist in the memory");
             alert.showAndWait();
-            return;
+            //return;
         }
         loadDictionaries();
 
@@ -185,45 +185,60 @@ public class MainViewController extends Application{
     }
 
     private void loadDictionaries() throws IOException{
-        String dictionary = "/dictionary.txt";
-        String currentPath="";
-        if(checkBoxStem.isSelected()) {
-            dictionary = "/stemmingSearchEngine" + dictionary;
-            currentPath = textPathToSave.getText() + "/stemmingSearchEngine";
-        }
-        else {
-            dictionary = "/notStemmingSearchEngine" + dictionary;
-            currentPath = textPathToSave.getText() + "/notStemmingSearchEngine";
-        }
-        /////////////////////////////////////////////////////////
-        Map<String, Integer> mapForDoument = new TreeMap<>();
-        Map<String, Integer> mapForCorpus = new TreeMap<>();
-        Map<String, Integer> mapForLnes = new TreeMap<>();
-        BufferedReader br1 = new BufferedReader(new InputStreamReader(new FileInputStream(textPathToSave.getText()+dictionary), StandardCharsets.UTF_8));
-        String line1 = br1.readLine();
-        while (line1 != null ) {
-            String[] x = line1.split("  ");
-            if (x[0].equals("teresa")){
-                System.out.println("sdsad");
+        Dictionary dictionary = new Dictionary();
+
+            String dictionaryPath;
+            String currentPath = "";
+            if (checkBoxStem.isSelected()) {
+                dictionaryPath = "/stemmingSearchEngine/dictionary.txt";
+                currentPath = textPathToSave.getText() + "/stemmingSearchEngine";
+            } else {
+                dictionaryPath = "/notStemmingSearchEngine/dictionary.txt";
+                currentPath = textPathToSave.getText() + "/notStemmingSearchEngine";
             }
-            mapForCorpus.put(x[0],Integer.parseInt(x[2]));
-            mapForDoument.put(x[0],Integer.parseInt(x[1]));
-            mapForLnes.put(x[0],Integer.parseInt(x[3]));
-            line1= br1.readLine();
+
+        if(main.indexer != null) {
+            dictionary.treeMapForfrequentOfTermInCorpus = main.indexer.treeMapForfrequentOfTermInCorpus;
+            dictionary.treeMapForDocsPerTerm = main.indexer.treeMapForDocsPerTerm;
+            dictionary.treeMapForLineNumberInPosting = main.indexer.treeMapForLineNumberInPosting;
+            dictionary.IDF_BM25_Map = main.indexer.IDF_BM25_Map;
         }
-        BufferedReader br6 = new BufferedReader(new FileReader(currentPath + "/IDF_BM25.txt"));
-        String line6 = br6.readLine();
-        Map<String, Double> IDF_BM25_Map = new TreeMap<>();
-        while (line6 != null ) {
-            String[] x = line6.split("\\^");
-            IDF_BM25_Map.put(x[0],Double.parseDouble(x[1]));
-            line6= br6.readLine();
+        else{
+            Map<String, Integer> mapForDoument = new TreeMap<>();
+            Map<String, Integer> mapForCorpus = new TreeMap<>();
+            Map<String, Integer> mapForLnes = new TreeMap<>();
+            BufferedReader br1 = new BufferedReader(new InputStreamReader(new FileInputStream(textPathToSave.getText() + dictionaryPath), StandardCharsets.UTF_8));
+            String line1 = br1.readLine();
+            while (line1 != null) {
+                String[] x = line1.split("  ");
+                mapForCorpus.put(x[0], Integer.parseInt(x[2]));
+                mapForDoument.put(x[0], Integer.parseInt(x[1]));
+                mapForLnes.put(x[0], Integer.parseInt(x[3]));
+                line1 = br1.readLine();
+            }
+            BufferedReader br6 = new BufferedReader(new FileReader(currentPath + "/IDF_BM25.txt"));
+            String line6 = br6.readLine();
+            Map<String, Double> IDF_BM25_Map = new TreeMap<>();
+            while (line6 != null) {
+                String[] x = line6.split("\\^");
+                IDF_BM25_Map.put(x[0], Double.parseDouble(x[1]));
+                line6 = br6.readLine();
+            }
+
+            dictionary.treeMapForfrequentOfTermInCorpus = (TreeMap) ((mapForCorpus));
+            dictionary.treeMapForDocsPerTerm = (TreeMap) ((mapForDoument));
+            dictionary.treeMapForLineNumberInPosting = (TreeMap) ((mapForLnes));
+            dictionary.IDF_BM25_Map = IDF_BM25_Map;
         }
+        //gal remove
+        /*
         main.indexer = new Indexer(textPathToSave.toString());
         main.indexer.treeMapForfrequentOfTermInCorpus = (TreeMap)((mapForCorpus));
         main.indexer.treeMapForDocsPerTerm = (TreeMap)((mapForDoument));
         main.indexer.treeMapForLineNumberInPosting = (TreeMap)((mapForLnes));
         main.indexer.IDF_BM25_Map = IDF_BM25_Map;
+*/
+
 
         ////////////////////////////////////////////////////////////////////
         /*Set<String> languages = new TreeSet<>();
@@ -245,7 +260,6 @@ public class MainViewController extends Application{
             line3= br3.readLine();
         }
         main.parser = new Parse(checkBoxStem.isSelected(),cities,textBrowseStopWordAndCorpus.getText(),currentPath);
-        System.out.println("2");
         ////////////////////////////////////////////////////////////////////
         Map <String,Integer> numberOfUniqueTermsInDoc = new HashMap<>();  // key = doc, value= מספר המילים הייחודיות במסמך
         Map <String,Integer> numberOfAppearancesOfMostCommonTermInDoc = new HashMap<>(); // key = doc, value = מספר ההופעות של המילה הכי נפוצה במסמך
@@ -272,9 +286,16 @@ public class MainViewController extends Application{
         main.avdl = Double.parseDouble(line5);
 
         //////////////////////////////////////////////////////////////////////
+        dictionary.numberOfUniqueTermsInDoc = numberOfUniqueTermsInDoc;
+        dictionary.numberOfAppearancesOfMostCommonTermInDoc = numberOfAppearancesOfMostCommonTermInDoc;
+        dictionary.numberOfTotalTermsInDoc = numberOfTotalTermsInDoc;
+        dictionary.weightOfDocNormalizedByLengthOfDoc = weightOfDocNormalizedByLengthOfDoc;
+        dictionary.weightOfDocNormalizedByMostCommonWordInDoc = weightOfDocNormalizedByMostCommonWordInDoc;
 
-        main.ranker = new Ranker(currentPath,numberOfUniqueTermsInDoc,numberOfAppearancesOfMostCommonTermInDoc,
-                numberOfTotalTermsInDoc,main.indexer,main.readFile,main.parser,weightOfDocNormalizedByLengthOfDoc,weightOfDocNormalizedByMostCommonWordInDoc);
+
+        main.ranker = new Ranker(currentPath,dictionary);
+/*        main.ranker = new Ranker(currentPath,numberOfUniqueTermsInDoc,numberOfAppearancesOfMostCommonTermInDoc,
+                numberOfTotalTermsInDoc,main.indexer,main.readFile,main.parser,weightOfDocNormalizedByLengthOfDoc,weightOfDocNormalizedByMostCommonWordInDoc);*/
         Alert alert = new Alert(Alert.AlertType.INFORMATION);//
         alert.setTitle("Complete successfully");
         alert.setHeaderText("Complete successfully");

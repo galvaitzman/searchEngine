@@ -504,6 +504,8 @@ public class Indexer {
                 IDF_BM25_Map.put(entry.getKey(), bm25_idf);
                 bufferWriter.write(entry.getKey() + "^" + bm25_idf + "\n");
             }
+            bufferWriter.flush();
+            bufferWriter.close();
         } catch (IOException e) {
         }
 
