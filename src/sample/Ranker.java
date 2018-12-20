@@ -19,7 +19,7 @@ public class Ranker {
     Map <String, Double> rankingOfDocuments;
     double b = 0.75;
     double k1 = 1.2;
-    double weightOfBM25 = 0.8;
+    double weightOfBM25 = 1.2;
     double weightOfCosSim = 0.2;
 
 

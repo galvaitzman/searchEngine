@@ -17,8 +17,6 @@ public class Searcher {
     public void rankCurrentQuery (Set<String> queryAfterParsing,  Map<String, Integer> cities){
         ranker.addTermsWithSameSemanticAndTempRankingCurrentQueryTerms(queryAfterParsing);
         List<String>result = ranker.rankEveryDocument(cities);
-        String s = ranker.dictionary.entities.get(result.get(49));
-
         try{
             int counter=0;
             BufferedWriter resBufferWriter = new BufferedWriter(new FileWriter("/Users/galvaitzman/IdeaProjects/searchEngine/src/reasources/gal.txt"));
@@ -30,7 +28,7 @@ public class Searcher {
             resBufferWriter.close();
         }
         catch (IOException e){e.printStackTrace();}
-        System.out.println("goni");
+
     }
 
 
