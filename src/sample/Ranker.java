@@ -110,36 +110,42 @@ public class Ranker {
             numberOfLineOfTermInDoc.put(docInfo[0], new int[sizeOfIntegerArray]);
         }
         appearancesCountingOfTermsInDoc.get(docInfo[0])[currentIndexInIntegerArray] = Integer.parseInt(docInfo[1]);
-        numberOfLineOfTermInDoc.get(docInfo[0])[currentIndexInIntegerArray] = Integer.parseInt(docInfo[2]);//
+        numberOfLineOfTermInDoc.get(docInfo[0])[currentIndexInIntegerArray] = Integer.parseInt(docInfo[2]);
     }
 
-    public List<String> rankEveryDocument (Map<String,Integer>cities) {
+    public List<String> rankEveryDocument (Map<String,Integer>cities) throws IOException {
 
         Map <String,Double> rankingForDocs = new HashMap<>();
         for (Map.Entry<String, double[]> insideEntry : appearancesCountingOfTermsInDoc.entrySet()) {
-            if (cities.size() > 0) {
-                if (cities.get(dictionary.cityOfDoc.get(insideEntry.getKey())) != null){
-                    rankingForDocs.put(insideEntry.getKey(), getBM25ForDoc(insideEntry.getKey()) * 0.8 + getCosSim(insideEntry.getKey()) * 0.2);
-                }
-            }
-            else{
+          //  if (cities.size() > 0) {
+          //      if (cities.get(dictionary.cityOfDoc.get(insideEntry.getKey())) != null){
+              //      rankingForDocs.put(insideEntry.getKey(), getBM25ForDoc(insideEntry.getKey()) * 0.8 + getCosSim(insideEntry.getKey()) * 0.2);
+            //    }
+            //}
+            //else{
                 rankingForDocs.put(insideEntry.getKey(), getBM25ForDoc(insideEntry.getKey()) * 0.8 + getCosSim(insideEntry.getKey()) * 0.2);
 
-            }
+            //}
         }
         List<Map.Entry<String, Double>> list = new ArrayList<>(rankingForDocs.entrySet());
         list.sort(Map.Entry.comparingByValue());
         List<String> result = new ArrayList<>();
+        BufferedWriter resBufferWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("C:/Users/gvaitzma/IdeaProjects/results.txt",true), StandardCharsets.UTF_8));
         int counter = 0;
         for (Map.Entry<String, Double> entry : list) {
-            if (list.size() - counter <= 100) {
+            if (list.size() - counter <= 50) {
+
+                    resBufferWriter.append("374" + " 0 "+ entry.getKey()+ " " +counter +" " + entry.getValue() + " test\n" );
+
                 result.add(entry.getKey());
-                System.out.println(entry.getKey());
+                System.out.println(entry.getKey() +" "+entry.getValue());
             }
             counter++;
         }
 
 
+        resBufferWriter.flush();
+        resBufferWriter.close();
 
         return null;
     }
@@ -155,7 +161,8 @@ public class Ranker {
         int counter = 0;
         double up = 0;
         for (String s: queryAfterParsing) {
-            up +=  ( appearancesCountingOfTermsInDoc.get(doc_name)[counter]) / dictionary.numberOfAppearancesOfMostCommonTermInDoc.get(s);
+            up +=  ( appearancesCountingOfTermsInDoc.get(doc_name)[counter]) / dictionary.numberOfAppearancesOfMostCommonTermInDoc.get(doc_name);
+            counter += 1;
         }
         double down = dictionary.weightOfDocNormalizedByMostCommonWordInDoc.get(doc_name) * Math.sqrt(queryAfterParsing.size());
 
