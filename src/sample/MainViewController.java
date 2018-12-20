@@ -309,7 +309,7 @@ public class MainViewController extends Application{
         dictionary.cityOfDoc = cityOfDoc;
 
 
-
+        main.searcher = new Searcher();
         main.ranker = new Ranker(currentPath,dictionary);
 /*        main.ranker = new Ranker(currentPath,numberOfUniqueTermsInDoc,numberOfAppearancesOfMostCommonTermInDoc,
                 numberOfTotalTermsInDoc,main.indexer,main.readFile,main.parser,weightOfDocNormalizedByLengthOfDoc,weightOfDocNormalizedByMostCommonWordInDoc);*/
