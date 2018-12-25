@@ -706,7 +706,7 @@ public class Parse {
             weightOfDocNormalizeByMostCommonWord = Math.sqrt(weightOfDocNormalizeByMostCommonWord);
             weightOfDocNormalizeByLengthOfDoc =  Math.round(weightOfDocNormalizeByLengthOfDoc*100.0)/100.0;
             weightOfDocNormalizeByMostCommonWord =  Math.round(weightOfDocNormalizeByMostCommonWord*100.0)/100.0;
-            docInfo.append(docName + "," + max + "," + termsIndoc.size() + "," + totalTermsNotIncludingStopWords +  "," + weightOfDocNormalizeByMostCommonWord + "," + weightOfDocNormalizeByLengthOfDoc +"\n");
+            docInfo.append(docName + "," + max + "," + termsIndoc.size() + "," + totalTermsNotIncludingStopWords +  "," + weightOfDocNormalizeByMostCommonWord + "," + weightOfDocNormalizeByLengthOfDoc + "," + currentLine + "\n");
             Map <String,Double> mapOfEntitiesRanking = new TreeMap<>();
             totalLengthOfAllDocumentsNotIncludingStopWords+=totalTermsNotIncludingStopWords;
             for ( Map.Entry<String, Integer> entry : mapOfEntitiesLineNumber.entrySet() ) {
@@ -779,13 +779,23 @@ public class Parse {
      * part B
      *
      */
-    public Set<String> QueryParser(String query,boolean isSemantic)
+    public Set<String> QueryParser(String query, String description, boolean isSemantic)
     {
         Set <String> finalSet = new HashSet<>();
         isQuery = true;
         String query2 = "";
         String [] queryArray = query.split(" ");
+        String [] descriptionArray=null;
+        if (!description.equals("")){
+            descriptionArray = description.split(" ");
+        }
+
+        boolean containsBigLetter =false;
+        for (int i=0; i<queryArray.length && !containsBigLetter; i++){
+            if (queryArray[i].charAt(0)>=65 && queryArray[i].charAt(0)<=90) containsBigLetter = true;
+        }
         if (isSemantic) {
+
             String allWordstoAPI = "";
             for (int i = 0; i < queryArray.length; i++) {
                 if (i == 0) {
@@ -795,52 +805,58 @@ public class Parse {
                 }
             }
             try {
-                query2 = "";
-                String urlString = "https://api.datamuse.com/words?ml=" + allWordstoAPI;
-                URL url = new URL(urlString);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod("GET");
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                StringBuffer content = new StringBuffer();
-                while ((inputLine = in.readLine()) != null) {
-                    content.append(inputLine);
-                }
-                in.close();
-                String detailsOfCity = content.toString();
-                int BracketCount = 0;
-                List<String> JsonItems = new ArrayList<>();
-                StringBuilder Json = new StringBuilder();
-                int currentCharIndex = 0;
-                for (char c : detailsOfCity.toCharArray()) {
-                    if (currentCharIndex == 0 || currentCharIndex == detailsOfCity.length() - 1) {
-                        currentCharIndex++;
-                        continue;
-                    }
-                    if (c == '{')
-                        ++BracketCount;
-                    else if (c == '}')
-                        --BracketCount;
-                    Json.append(c);
+                if (containsBigLetter) {
+                    String urlString = "https://api.datamuse.com/words?ml=" + allWordstoAPI;
+                    URL url = new URL(urlString);
+                    HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                    con.setRequestMethod("GET");
+                    BufferedReader in = new BufferedReader(
+                            new InputStreamReader(con.getInputStream()));
+                    String inputLine;
+                    StringBuffer content = new StringBuffer();
 
-                    if (BracketCount == 0 && c != ' ') {
-                        if (!Json.toString().equals(",")) JsonItems.add(Json.toString());
-                        Json = new StringBuilder();
+                    while ((inputLine = in.readLine()) != null) {
+                        content.append(inputLine);
                     }
-                    currentCharIndex++;
+                    in.close();
+                    String detailsOfCity = content.toString();
+                    int BracketCount = 0;
+                    List<String> JsonItems = new ArrayList<>();
+                    StringBuilder Json = new StringBuilder();
+                    int currentCharIndex = 0;
+                    for (char c : detailsOfCity.toCharArray()) {
+                        if (currentCharIndex == 0 || currentCharIndex == detailsOfCity.length() - 1) {
+                            currentCharIndex++;
+                            continue;
+                        }
+                        if (c == '{')
+                            ++BracketCount;
+                        else if (c == '}')
+                            --BracketCount;
+                        Json.append(c);
+
+                        if (BracketCount == 0 && c != ' ') {
+                            if (!Json.toString().equals(",")) JsonItems.add(Json.toString());
+                            Json = new StringBuilder();
+                        }
+                        currentCharIndex++;
+                    }
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    for (int j = 0; j < queryArray.length * 3; j++) {//
+                        Word word = objectMapper.readValue(JsonItems.get(j), Word.class);
+                        query2 = query2 + " " + word.word.toUpperCase() + " " + word.word.toLowerCase();
+                    }
+                    con.disconnect();
+                    parsingTextToText(query2);
+                    finalSet = new HashSet(queryTerms);
                 }
-                ObjectMapper objectMapper = new ObjectMapper();
-                for (int j = 0; j < JsonItems.size(); j++) {
-                    Word word = objectMapper.readValue(JsonItems.get(j), Word.class);
-                    query2 = query2 + " " + word.word.toUpperCase() + " " + word.word.toLowerCase();
+                else{
+
                 }
-                con.disconnect();
-                parsingTextToText(query2);
-                finalSet = new HashSet(queryTerms);
             } catch (Exception e) {
 
             }
+
         }
         String queryWithBigLettersAndSmallLetters="";
         for(String s:queryArray){

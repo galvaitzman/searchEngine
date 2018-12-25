@@ -111,6 +111,7 @@ public class Main extends Application {
             bufferWriter1.close();
             bufferWriter2.close();
             bufferWriter3.close();
+
             long start = System.nanoTime();
             parser.makePostingForCities();
             System.out.println((System.nanoTime()-start) * Math.pow(10,-9));

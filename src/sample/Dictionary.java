@@ -14,6 +14,7 @@ public class Dictionary {
     public Map <String,Double> weightOfDocNormalizedByMostCommonWordInDoc;
     public Map <String,String> cityOfDoc;
     public Map <String, Set<String>> cityInDoc;
+    public Map <String,Integer> numberOfLinesInDoc;
 
     // indexer
     public TreeMap<String,Integer> treeMapForfrequentOfTermInCorpus;
@@ -21,7 +22,6 @@ public class Dictionary {
     public TreeMap <String,Integer> treeMapForLineNumberInPosting;
     public Map<String, Double> IDF_BM25_Map;
     public Map <String,String> entities;
-    public Map <String,String> queries;
 
 
     public Dictionary( ){

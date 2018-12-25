@@ -2,7 +2,6 @@ package sample;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -19,12 +18,9 @@ import org.controlsfx.control.CheckComboBox;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.stream.Stream;
 
 public class MainViewController extends Application{
 
@@ -41,7 +37,11 @@ public class MainViewController extends Application{
     public Button buttonLoaDicToMemory;
     public CheckComboBox <String> comboBoxCities;
     public javafx.scene.control.CheckBox checkBoxSemantic;
-    public TextField query;
+    public TextField textBoxQuery;
+    public TextField textBoxQueryPath;
+    public ListView listViewDocs;
+    public ListView listViewEntity;
+
 
 
 
@@ -69,7 +69,6 @@ public class MainViewController extends Application{
 
 
     }
-
 
     public void startBuild(ActionEvent actionEvent) {
         long start = System.nanoTime();
@@ -106,6 +105,14 @@ public class MainViewController extends Application{
         File selectedFile = dc.showDialog(primaryStage);
         if (selectedFile != null)
             textPathToSave.setText(selectedFile.getPath());
+    }
+
+    public void browseQuery(ActionEvent actionEvent ){
+        DirectoryChooser dc = new DirectoryChooser();
+        dc.setTitle("Path of the queries");
+        File selectedFile = dc.showDialog(primaryStage);
+        if (selectedFile != null)
+            textBoxQueryPath.setText(selectedFile.getPath());
     }
 
     public void reset(ActionEvent actionEvent ){
@@ -272,6 +279,7 @@ public class MainViewController extends Application{
         Map <String,Integer> numberOfTotalTermsInDoc = new HashMap<>(); //
         Map <String,Double> weightOfDocNormalizedByLengthOfDoc = new HashMap<>();
         Map <String,Double> weightOfDocNormalizedByMostCommonWordInDoc = new HashMap<>();
+        Map <String,Integer> numberOfLinesInDoc = new HashMap<>();
 
         BufferedReader br4 = new BufferedReader(new FileReader(currentPath+"/docInfoFrequencyNumberOfUniqueWords.txt"));
         String line4 = br4.readLine();
@@ -282,6 +290,7 @@ public class MainViewController extends Application{
             numberOfTotalTermsInDoc.put(x[0],Integer.parseInt(x[3]));
             weightOfDocNormalizedByLengthOfDoc.put(x[0],Double.parseDouble(x[5]));
             weightOfDocNormalizedByMostCommonWordInDoc.put(x[0],Double.parseDouble(x[4]));
+            numberOfLinesInDoc.put(x[0],Integer.parseInt(x[6]));
 
             line4= br4.readLine();
         }
@@ -329,28 +338,8 @@ public class MainViewController extends Application{
             line9 = br9.readLine();
         }
         //////////////////////////////////////////////////////////////////////
-        Map <String,String> queries = new HashMap<>();
-        BufferedReader br10 = new BufferedReader(new FileReader(currentPath+"/queries.txt"));
-        String line10 = br10.readLine();
-        String number="";
-        String title="";
-        while (line10 != null){
-            if (line10.contains("<num> Number:")){
-                number = line10.substring(line10.indexOf("<num> Number:")+14);
-            }
-            else if (line10.contains("<title>")){
-                title = line10.substring(line10.indexOf("<title>")+8);
-            }
-            if (!title.equals("") && !number.equals("")){
-                if (number.endsWith(" ") || number.endsWith("\n") ) number = number.substring(0,number.length()-1);
-                if (title.endsWith(" ") || title.endsWith("\n") ) title = title.substring(0,title.length()-1);
-                queries.put(number,title);
-                number="";
-                title="";
-            }
-            line10 = br10.readLine();
-        }
-        ////////////////////////////////////////////////////////////////////
+
+
         dictionary.numberOfUniqueTermsInDoc = numberOfUniqueTermsInDoc;
         dictionary.numberOfAppearancesOfMostCommonTermInDoc = numberOfAppearancesOfMostCommonTermInDoc;
         dictionary.numberOfTotalTermsInDoc = numberOfTotalTermsInDoc;
@@ -359,7 +348,8 @@ public class MainViewController extends Application{
         dictionary.cityOfDoc = cityOfDoc;
         dictionary.cityInDoc = cityInDoc;
         dictionary.entities=entities;
-        dictionary.queries = queries;
+        dictionary.numberOfLinesInDoc = numberOfLinesInDoc;
+     //   dictionary.queries = queries;
 
 
 
@@ -394,15 +384,211 @@ public class MainViewController extends Application{
     }
 
     public void startQuery(ActionEvent actionEvent) throws IOException {
-
-
-        Map <String, Integer> cities = new HashMap<>();
-        ObservableList<Integer> data2 = comboBoxCities.getCheckModel().getCheckedIndices();
-        for (Integer i: data2){
-            cities.put(comboBoxCities.getItems().get(i),i);
+        listViewDocs.setVisible(false);
+        listViewDocs.getItems().clear();
+        listViewEntity.setVisible(false);
+        listViewEntity.getItems().clear();
+        if (textBoxQuery.getText().equals("") && textBoxQueryPath.getText().equals("")) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Message");
+            alert.setContentText("One of the query text need to be filled");
+            alert.showAndWait();
+            return;
         }
+
+        if (!textBoxQuery.getText().equals("") && !textBoxQueryPath.getText().equals("")) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Message");
+            alert.setContentText("Just one of the query text need to be filled");
+            alert.showAndWait();
+            return;
+        }
+
+        Map<String, Integer> cities = new HashMap<>();
+        ObservableList<Integer> data2 = comboBoxCities.getCheckModel().getCheckedIndices();
+        for (Integer i : data2) {
+            cities.put(comboBoxCities.getItems().get(i), i);
+        }
+
         long start = System.nanoTime();
-        main.searcher.rankCurrentQuery(main.parser.QueryParser(query.getText(),checkBoxSemantic.isSelected()),cities);
-        System.out.println((System.nanoTime()-start)* Math.pow(10,-9));
+
+        if (!textBoxQueryPath.getText().equals("")) {
+            //   Map<String, String> queries = new HashMap<>();
+            BufferedReader br10 = new BufferedReader(new FileReader(textBoxQueryPath.getText() + "/queries.txt"));
+            String line10 = br10.readLine();
+            String numberOfQuery = "";
+            String title = "";
+            String description="";
+            while (line10 != null) {
+                if (line10.contains("<num> Number:")) {
+                    numberOfQuery = line10.substring(line10.indexOf("<num> Number:") + 14);
+                }
+                else if (line10.contains("<title>")) {
+                    title = line10.substring(line10.indexOf("<title>") + 8);
+                }
+                else if (line10.contains("Description")){
+                    line10 = br10.readLine();
+                    while (!line10.contains("Narrative")){
+                        description = description + line10;
+                        line10 = br10.readLine();
+                    }
+                }
+                if (!title.equals("") && !numberOfQuery.equals("")) {
+                    if (numberOfQuery.endsWith(" ") || numberOfQuery.endsWith("\n"))
+                        numberOfQuery = numberOfQuery.substring(0, numberOfQuery.length() - 1);
+                    if (title.endsWith(" ") || title.endsWith("\n")) title = title.substring(0, title.length() - 1);
+                    main.searcher.rankCurrentQuery(numberOfQuery, main.parser.QueryParser(title,description, checkBoxSemantic.isSelected()), cities);
+                    //  queries.put(number, title);
+                    numberOfQuery = "";
+                    title = "";
+                }
+                System.out.println(numberOfQuery);
+                line10 = br10.readLine();
+            }
+        } else {
+            List<String> list  = main.searcher.rankCurrentQuery("-1", main.parser.QueryParser(textBoxQuery.getText(), "",checkBoxSemantic.isSelected()), cities);
+            Collections.reverse(list);
+            int counter = 1;
+            for(String s : list ) {
+                listViewDocs.getItems().add(counter + ". " + s);
+                counter += 1;
+            }
+            listViewDocs.setVisible(true);
+        }
+        System.out.println((System.nanoTime() - start) * Math.pow(10, -9));
+
+        cmd();
+        writeToCSV();
+
+    }
+
+
+    private void cmd() {
+        String[] command = { "cmd" };
+        String path = "C:\\Users\\gvaitzma\\IdeaProjects"; // insert here your path to directory !
+        Process p;
+        try{
+            p= Runtime.getRuntime().exec(command);
+            new Thread(new SyncPipe(p.getErrorStream(), System.err)).start();
+            new Thread(new SyncPipe(p.getInputStream(), System.out)).start();
+            PrintWriter stdin = new PrintWriter(p.getOutputStream());
+            stdin.println("cd "+ path);
+            stdin.println("treceval -q qrels.txt results.txt > output.txt");
+
+            stdin.close();
+            p.waitFor();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeToCSV() {
+        String readFromFile="C:\\Users\\gvaitzma\\IdeaProjects\\output.txt"; // insert here your path to output.txt
+        String writeToFile = "C:\\Users\\gvaitzma\\IdeaProjects\\Ans.csv"; // insert here your path to Ans.csv
+        File file = new File(readFromFile);
+        if(file.exists()){
+            // first read
+            BufferedReader br = null;
+            FileReader fr = null;
+
+            BufferedWriter bw = null;
+            FileWriter fw = null;
+            StringBuilder sb = new StringBuilder();
+
+            try {
+                fr = new FileReader(readFromFile);
+                br = new BufferedReader(fr);
+                fw= new FileWriter(writeToFile);
+                bw = new BufferedWriter(fw);
+                bw.write("ID,Retrieved,Relevant,Rel_ret\n");
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if(line.startsWith("Queryid")){
+                        String ID=line.substring(20);
+                        sb.append(ID);
+                        sb.append(",");
+                        continue;
+                    }
+                    if(line.contains("Retrieved:")){
+                        String Retrieved=line.substring(21);
+                        if(Retrieved.startsWith(" ")){
+                            Retrieved = Retrieved.substring(1);
+                        }
+                        sb.append(Retrieved);
+                        sb.append(",");
+                        continue;
+                    }
+                    if(line.contains("Relevant:")){
+                        String Relevant=line.substring(20);
+                        if(Relevant.startsWith(" ")){
+                            Relevant = Relevant.substring(1);
+                        }
+                        sb.append(Relevant);
+                        sb.append(",");
+                        continue;
+                    }
+                    if(line.contains("Rel_ret:")){
+                        String Rel_ret=line.substring(20);
+                        if(Rel_ret.startsWith(" ")){
+                            Rel_ret = Rel_ret.substring(1);
+                        }
+                        sb.append(Rel_ret);
+                        sb.append("\n");
+                        bw.write(sb.toString());
+                        sb=new StringBuilder();
+
+                    }
+                }
+
+
+
+            } catch (IOException e) {
+
+            } finally {
+                try {
+                    if (br != null)
+                        br.close();
+
+                    if (fr != null)
+                        fr.close();
+
+                    if (bw != null)
+                        bw.close();
+
+                    if (fw != null)
+                        fw.close();
+                } catch (IOException ex) {
+                }
+            }
+        }
+    }
+
+
+
+    class SyncPipe implements Runnable
+    {
+        public SyncPipe(InputStream istrm, OutputStream ostrm) {
+            istrm_ = istrm;
+            ostrm_ = ostrm;
+        }
+        public void run() {
+            try
+            {
+                final byte[] buffer = new byte[1024];
+                for (int length = 0; (length = istrm_.read(buffer)) != -1; )
+                {
+                    ostrm_.write(buffer, 0, length);
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+        private final OutputStream ostrm_;
+        private final InputStream istrm_;
     }
 }

@@ -1,10 +1,7 @@
 package sample;
 
 import java.io.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Searcher {
 
@@ -14,20 +11,24 @@ public class Searcher {
 
     }
 
-    public void rankCurrentQuery (Set<String> queryAfterParsing,  Map<String, Integer> cities){
+    public List<String> rankCurrentQuery (String numberOfQuery,Set<String> queryAfterParsing,  Map<String, Integer> cities){
+        List<String> list = new ArrayList<>();
         ranker.addTermsWithSameSemanticAndTempRankingCurrentQueryTerms(queryAfterParsing);
         List<String>result = ranker.rankEveryDocument(cities);
         try{
             int counter=0;
-            BufferedWriter resBufferWriter = new BufferedWriter(new FileWriter("/Users/galvaitzman/IdeaProjects/searchEngine/src/reasources/gal.txt"));
+            BufferedWriter resBufferWriter = new BufferedWriter(new FileWriter("C:/Users/gvaitzma/IdeaProjects/results.txt",true));
             for (String s2: result) {
-                resBufferWriter.append("374" + " 0 " + s2 + " " + counter + " " + 3.0 + " test\n");
+                list.add(s2);
+                resBufferWriter.append(numberOfQuery + " 0 " + s2 + " " + counter + " " + 3.0 + " test\n");
                 counter++;
             }
             resBufferWriter.flush();
             resBufferWriter.close();
+
         }
         catch (IOException e){e.printStackTrace();}
+        return list;
 
     }
 
