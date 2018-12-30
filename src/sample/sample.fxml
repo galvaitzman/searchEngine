@@ -71,6 +71,7 @@
                  <Font name="System Bold" size="14.0" />
              </font>
          </Button>
+
          <Text fill="WHITE" fontSmoothingType="LCD" layoutX="335.0" layoutY="325.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Cities">
              <font>
                  <Font name="System Bold" size="15.0" />
@@ -169,7 +170,7 @@
              </LinearGradient>
           </stroke>
        </Text>
-       <Text fill="WHITE" fontSmoothingType="LCD" layoutX="261.0" layoutY="218.0" strokeType="OUTSIDE" strokeWidth="0.0" text="PART B" underline="true">
+       <Text fill="WHITE" fontSmoothingType="LCD" layoutX="261.0" layoutY="170.0" strokeType="OUTSIDE" strokeWidth="0.0" text="PART B" underline="true">
           <font>
              <Font name="System Bold Italic" size="18.0" />
           </font>
@@ -197,5 +198,15 @@
        </Text>
       <ListView fx:id="listViewDocs" layoutX="65.0" layoutY="405.0" prefHeight="216.0" prefWidth="200.0" visible="false" />
       <ListView fx:id="listViewEntity" layoutX="335.0" layoutY="405.0" prefHeight="216.0" prefWidth="200.0" visible="false" />
+        <TextField fx:id="textBrowseSaveResult" layoutX="143.0" layoutY="200.0" prefHeight="20.0" prefWidth="330.0" />
+        <Text fill="WHITE" fontSmoothingType="LCD" layoutX="31.0" layoutY="213.0" strokeLineCap="BUTT" strokeType="OUTSIDE" strokeWidth="0.0" text="path to save results of query">
+            <font>
+                <Font name="System Bold" size="8.0" />
+            </font></Text>
+        <Button fx:id="BrowseSaveResults" layoutX="480.0" layoutY="195.0" mnemonicParsing="false" onAction="#browseResult" prefHeight="30.0" prefWidth="76.0" text="Browse" textOverrun="WORD_ELLIPSIS">
+            <font>
+                <Font name="System Bold" size="14.0" />
+            </font>
+        </Button>
      </children>
  </AnchorPane>

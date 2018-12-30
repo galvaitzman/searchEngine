@@ -2,7 +2,6 @@ package sample;
 
 import javafx.util.Pair;
 import org.codehaus.jackson.map.ObjectMapper;
-
 import javax.management.Query;
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -781,14 +780,41 @@ public class Parse {
      */
     public Set<String> QueryParser(String query, String description, boolean isSemantic)
     {
+        Set <String> dictionaryOfUnWantedWordsForDescription = new HashSet<>();
+        if (!description.equals("")) {
+            dictionaryOfUnWantedWordsForDescription.add("identify");
+            dictionaryOfUnWantedWordsForDescription.add("Identify");
+            dictionaryOfUnWantedWordsForDescription.add("discuss");
+            dictionaryOfUnWantedWordsForDescription.add("Discuss");
+            dictionaryOfUnWantedWordsForDescription.add("discussing");
+            dictionaryOfUnWantedWordsForDescription.add("Discussing");
+            dictionaryOfUnWantedWordsForDescription.add("Document");
+            dictionaryOfUnWantedWordsForDescription.add("Documents");
+            dictionaryOfUnWantedWordsForDescription.add("document");
+            dictionaryOfUnWantedWordsForDescription.add("documents");
+            dictionaryOfUnWantedWordsForDescription.add("information");
+            dictionaryOfUnWantedWordsForDescription.add("contain");
+            dictionaryOfUnWantedWordsForDescription.add("contains");
+            dictionaryOfUnWantedWordsForDescription.add("identified");
+            dictionaryOfUnWantedWordsForDescription.add("required");
+            dictionaryOfUnWantedWordsForDescription.add("include");
+            dictionaryOfUnWantedWordsForDescription.add("included");
+            dictionaryOfUnWantedWordsForDescription.add("following");
+            dictionaryOfUnWantedWordsForDescription.add("considered");
+            dictionaryOfUnWantedWordsForDescription.add("regarding");
+            dictionaryOfUnWantedWordsForDescription.add("mention");
+            dictionaryOfUnWantedWordsForDescription.add("mentions");
+            dictionaryOfUnWantedWordsForDescription.add("refer");
+            dictionaryOfUnWantedWordsForDescription.add("refers");
+            dictionaryOfUnWantedWordsForDescription.add("focus");
+            dictionaryOfUnWantedWordsForDescription.add("associate");
+            dictionaryOfUnWantedWordsForDescription.add("associates");
+            dictionaryOfUnWantedWordsForDescription.add("associated");
+        }//
         Set <String> finalSet = new HashSet<>();
         isQuery = true;
         String query2 = "";
         String [] queryArray = query.split(" ");
-        String [] descriptionArray=null;
-        if (!description.equals("")){
-            descriptionArray = description.split(" ");
-        }
 
         boolean containsBigLetter =false;
         for (int i=0; i<queryArray.length && !containsBigLetter; i++){
@@ -852,11 +878,112 @@ public class Parse {
                 }
                 else{
 
+                    if (!description.equals("")) {
+                        String[] descriptionArray = description.split(" ");
+                        String finalDescription = "";
+                        for (String s : descriptionArray) {
+                            if (!dictionaryOfUnWantedWordsForDescription.contains(s)) finalDescription = finalDescription + " " + s;
+                        }
+                        descriptionArray = finalDescription.split(".");
+
+                        int notRelevantIndex = -1;
+                        int relevantIndex = -1;
+                        int counter = 0;
+                        for (String s : descriptionArray) {
+                            if ((s.contains("relevant") || s.contains("Relevant") ) && (!s.contains("non-relevant") || !s.contains("not relevant"))) {
+                                relevantIndex = counter;
+                            } else if (s.contains("non-relevant") || s.contains("not relevant")) {
+                                notRelevantIndex = counter;
+                            }
+                            counter++;
+                        }
+                        counter = 0;
+
+                        if (notRelevantIndex == -1) {
+                            parsingTextToText(finalDescription);
+                            for (String s : queryTerms) {
+                                finalSet.add(s);
+                            }
+                            queryTerms.clear();
+                        } else if (notRelevantIndex > relevantIndex) {
+                            while (counter < notRelevantIndex) {
+                                parsingTextToText(descriptionArray[counter]);
+                                counter++;
+                            }
+                            for (String s : queryTerms) {
+                                finalSet.add(s);
+                            }
+                            queryTerms.clear();
+                        } else {
+                            counter = notRelevantIndex + 1;
+                            while (counter < descriptionArray.length) {
+                                parsingTextToText(descriptionArray[counter]);
+                                counter++;
+                            }
+                            for (String s : queryTerms) {
+                                finalSet.add(s);
+                            }
+                            queryTerms.clear();
+                        }
+                    }
                 }
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
 
+        }
+        else{
+            if (!description.equals("") && !containsBigLetter) {
+                String[] descriptionArray = description.split(" ");
+                String finalDescription = "";
+                for (String s : descriptionArray) {
+
+                    if (!dictionaryOfUnWantedWordsForDescription.contains(s)){
+                        finalDescription = finalDescription + " " + s;
+                    }
+                }
+                descriptionArray = finalDescription.split(".");
+
+                int notRelevantIndex = -1;
+                int relevantIndex = -1;
+                int counter = 0;
+                for (String s : descriptionArray) {
+                    if ((s.contains("relevant") || s.contains("Relevant") ) && (!s.contains("non-relevant") || !s.contains("not relevant"))) {
+                        relevantIndex = counter;
+                    } else if (s.contains("non-relevant") || s.contains("not relevant")) {
+                        notRelevantIndex = counter;
+                    }
+                    counter++;
+                }
+                counter = 0;
+
+                if (notRelevantIndex == -1) {
+                    parsingTextToText(finalDescription);
+                    for (String s : queryTerms) {
+                        finalSet.add(s);
+                    }
+                    queryTerms.clear();
+                } else if (notRelevantIndex > relevantIndex) {
+                    while (counter < notRelevantIndex) {
+                        parsingTextToText(descriptionArray[counter]);
+                        counter++;
+                    }
+                    for (String s : queryTerms) {
+                        finalSet.add(s);
+                    }
+                    queryTerms.clear();
+                } else {
+                    counter = notRelevantIndex + 1;
+                    while (counter < descriptionArray.length) {
+                        parsingTextToText(descriptionArray[counter]);
+                        counter++;
+                    }
+                    for (String s : queryTerms) {
+                        finalSet.add(s);
+                    }
+                    queryTerms.clear();
+                }
+            }
         }
         String queryWithBigLettersAndSmallLetters="";
         for(String s:queryArray){
@@ -867,6 +994,25 @@ public class Parse {
             finalSet.add(s);
         }
         isQuery = false;
+
+
+        if (description != ""){
+            dictionaryOfUnWantedWordsForDescription.add("relevant");
+            Set <String> finalFinalSet = new HashSet<>();
+            for (String s1: finalSet){
+                boolean s1IsOK = true;
+                for (String s2: dictionaryOfUnWantedWordsForDescription){
+                    if (s2.toUpperCase().startsWith(s1) || s2.toLowerCase().startsWith(s1)) {
+                        s1IsOK=false;
+                        break;
+                    }
+                }
+                if (s1IsOK) finalFinalSet.add(s1);
+            }
+            return finalFinalSet;
+        }
+
+
         return finalSet;//
     }
 

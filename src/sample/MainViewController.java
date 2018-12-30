@@ -1,6 +1,8 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -12,6 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.controlsfx.control.CheckComboBox;
@@ -41,6 +44,9 @@ public class MainViewController extends Application{
     public TextField textBoxQueryPath;
     public ListView listViewDocs;
     public ListView listViewEntity;
+    public String currentPath = "";
+    public TextField textBrowseSaveResult;
+    public boolean dictionariesLoaded = false;
 
 
 
@@ -65,6 +71,7 @@ public class MainViewController extends Application{
             alert.showAndWait();
             //return;
         }
+        dictionariesLoaded = true;
         loadDictionaries();
 
 
@@ -108,11 +115,19 @@ public class MainViewController extends Application{
     }
 
     public void browseQuery(ActionEvent actionEvent ){
-        DirectoryChooser dc = new DirectoryChooser();
-        dc.setTitle("Path of the queries");
-        File selectedFile = dc.showDialog(primaryStage);
+        FileChooser fileChooser= new FileChooser();
+        fileChooser.setTitle("Path of the queries");
+        File selectedFile = fileChooser.showOpenDialog(primaryStage);
         if (selectedFile != null)
             textBoxQueryPath.setText(selectedFile.getPath());
+    }
+
+    public void browseResult(ActionEvent actionEvent ){
+        DirectoryChooser dc = new DirectoryChooser();
+        dc.setTitle("Path of the results");
+        File selectedFile = dc.showDialog(primaryStage);
+        if (selectedFile != null)
+            textBrowseSaveResult.setText(selectedFile.getPath());
     }
 
     public void reset(ActionEvent actionEvent ){
@@ -201,7 +216,7 @@ public class MainViewController extends Application{
         Dictionary dictionary = new Dictionary();
 
             String dictionaryPath;
-            String currentPath = "";
+
             if (checkBoxStem.isSelected()) {
                 dictionaryPath = "/stemmingSearchEngine/dictionary.txt";
                 currentPath = textPathToSave.getText() + "/stemmingSearchEngine";
@@ -225,7 +240,7 @@ public class MainViewController extends Application{
             while (line1 != null) {
                 String[] x = line1.split("  ");
                 mapForCorpus.put(x[0], Integer.parseInt(x[2]));
-                mapForDoument.put(x[0], Integer.parseInt(x[1]));
+                mapForDoument.put(x[0], Integer.parseInt(x[1]));//
                 mapForLnes.put(x[0], Integer.parseInt(x[3]));
                 line1 = br1.readLine();
             }
@@ -317,7 +332,10 @@ public class MainViewController extends Application{
         BufferedReader br8 = new BufferedReader(new FileReader(currentPath+"/citiesPosting.txt"));
         String line8 = br8.readLine();
         for (String s: cities){
-            if (line8.equals("No appearences of this city in the corpus\n"))continue;
+            if (line8.equals("No appearences of this city in the corpus\n")){
+                line8 = br8.readLine();
+                continue;
+            }
             String [] x = line8.split("~");
             for (String st:x){
                 if (cityInDoc.get(st.split(",")[0]) == null)
@@ -327,6 +345,7 @@ public class MainViewController extends Application{
             line8 = br8.readLine();
             if (line8 == null) break;
         }
+        System.out.println("sadsa");
         /////////////////////////////////////////////////////////////////////
         Map <String,String> entities = new HashMap<>();
         BufferedReader br9 = new BufferedReader(new FileReader(currentPath+"/entitiesOfDoc.txt"));
@@ -384,10 +403,18 @@ public class MainViewController extends Application{
     }
 
     public void startQuery(ActionEvent actionEvent) throws IOException {
+
         listViewDocs.setVisible(false);
         listViewDocs.getItems().clear();
         listViewEntity.setVisible(false);
         listViewEntity.getItems().clear();
+        if (!dictionariesLoaded) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Message");
+            alert.setContentText("please load the dictionaries");
+            alert.showAndWait();
+            return;
+        }
         if (textBoxQuery.getText().equals("") && textBoxQueryPath.getText().equals("")) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Message");
@@ -404,6 +431,33 @@ public class MainViewController extends Application{
             return;
         }
 
+        if (textBrowseSaveResult.getText().equals("")) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Message");
+            alert.setContentText("please choose path to save the results");
+            alert.showAndWait();
+            return;
+        }
+
+        if (textBrowseStopWordAndCorpus.getText().equals("")) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Message");
+            alert.setContentText("please enter the stop_words path");
+            alert.showAndWait();
+            return;
+        }
+
+        if (textPathToSave.getText().equals("")) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Message");
+            alert.setContentText("please choose path of the dictionaries");
+            alert.showAndWait();
+            return;
+        }
+
+
+
+
         Map<String, Integer> cities = new HashMap<>();
         ObservableList<Integer> data2 = comboBoxCities.getCheckModel().getCheckedIndices();
         for (Integer i : data2) {
@@ -414,7 +468,7 @@ public class MainViewController extends Application{
 
         if (!textBoxQueryPath.getText().equals("")) {
             //   Map<String, String> queries = new HashMap<>();
-            BufferedReader br10 = new BufferedReader(new FileReader(textBoxQueryPath.getText() + "/queries.txt"));
+            BufferedReader br10 = new BufferedReader(new FileReader(textBoxQueryPath.getText()));
             String line10 = br10.readLine();
             String numberOfQuery = "";
             String title = "";
@@ -426,27 +480,28 @@ public class MainViewController extends Application{
                 else if (line10.contains("<title>")) {
                     title = line10.substring(line10.indexOf("<title>") + 8);
                 }
-                else if (line10.contains("Description")){
+                else if (line10.contains("Narrative")){
                     line10 = br10.readLine();
-                    while (!line10.contains("Narrative")){
-                        description = description + line10;
+                    while (!line10.contains("</top>")){
+                        description = description + " " + line10;
                         line10 = br10.readLine();
                     }
                 }
-                if (!title.equals("") && !numberOfQuery.equals("")) {
+                if (!title.equals("") && !numberOfQuery.equals("") && !description.equals("")) {
                     if (numberOfQuery.endsWith(" ") || numberOfQuery.endsWith("\n"))
                         numberOfQuery = numberOfQuery.substring(0, numberOfQuery.length() - 1);
                     if (title.endsWith(" ") || title.endsWith("\n")) title = title.substring(0, title.length() - 1);
-                    main.searcher.rankCurrentQuery(numberOfQuery, main.parser.QueryParser(title,description, checkBoxSemantic.isSelected()), cities);
+                    main.searcher.rankCurrentQuery(numberOfQuery, main.parser.QueryParser(title,description, checkBoxSemantic.isSelected()), cities,textBrowseSaveResult.getText());
                     //  queries.put(number, title);
                     numberOfQuery = "";
                     title = "";
+                    description = "";
                 }
                 System.out.println(numberOfQuery);
                 line10 = br10.readLine();
             }
         } else {
-            List<String> list  = main.searcher.rankCurrentQuery("-1", main.parser.QueryParser(textBoxQuery.getText(), "",checkBoxSemantic.isSelected()), cities);
+            List<String> list  = main.searcher.rankCurrentQuery("-1", main.parser.QueryParser(textBoxQuery.getText(), "",checkBoxSemantic.isSelected()), cities,textBrowseSaveResult.getText());
             Collections.reverse(list);
             int counter = 1;
             for(String s : list ) {
@@ -454,6 +509,46 @@ public class MainViewController extends Application{
                 counter += 1;
             }
             listViewDocs.setVisible(true);
+            listViewDocs.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
+                @Override
+                public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                    if(listViewDocs.getSelectionModel().getSelectedItem() != null)
+                    {
+                        String chosenFile2 = ((String) listViewDocs.getSelectionModel().getSelectedItem());
+                        String chosenFile = chosenFile2.split("\\.")[1];
+                        chosenFile = chosenFile.substring(chosenFile.lastIndexOf(" ")+1);
+
+                        try {
+                            BufferedReader br1 = new BufferedReader(new FileReader(currentPath +"/entitiesOfDoc.txt"));
+                            String currentFile = br1.readLine();
+                            boolean fileFound = false;
+                            while (currentFile != null && !fileFound){
+
+                                if (chosenFile.equals(currentFile.split("~")[0])) fileFound = true;
+                                else currentFile = br1.readLine();
+                            }
+                            if (fileFound) {
+                                String[] splitBetweenDocNameAndEntities = currentFile.split("~");
+                                if (splitBetweenDocNameAndEntities.length > 1) {
+                                    String[] entitiesOfDoc = splitBetweenDocNameAndEntities[1].split(",");
+                                    ObservableList<String> data = FXCollections.observableArrayList();
+                                    for (String s : entitiesOfDoc) {
+                                        data.add(s);
+                                    }
+                                    listViewEntity.setItems(data);
+                                    listViewEntity.setVisible(true);
+                                }
+                            }
+
+
+
+                        }
+                        catch (Exception e){}
+
+
+                    }
+                }
+            });
         }
         System.out.println((System.nanoTime() - start) * Math.pow(10, -9));
 
