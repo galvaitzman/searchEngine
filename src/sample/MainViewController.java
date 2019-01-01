@@ -269,16 +269,19 @@ public class MainViewController extends Application{
 
 
         ////////////////////////////////////////////////////////////////////
-        /*Set<String> languages = new TreeSet<>();
+        Set<String> languages = new TreeSet<>();
         BufferedReader br2 = new BufferedReader(new FileReader(currentPath+"/languages.txt"));
         String line2 = br2.readLine();
         while (line2 != null ) {
-            languages.add(line2.substring(0,line2.length()-1));
+            languages.add(line2);
             line2= br2.readLine();
         }
         main.readFile = new ReadFile(textBrowseStopWordAndCorpus.getText(),currentPath);
-        main.readFile.languages = languages;*/
+        main.readFile.languages = languages;
+        ObservableList<String> data = FXCollections.observableArrayList(languages);
+        comboBoxLanguage.setItems(data);
         /////////////////////////////////////////////////////////////////////
+
         Set<String> cities = new TreeSet<>();
         BufferedReader br3 = new BufferedReader(new FileReader(currentPath+"/citiesDetails.txt"));
         String line3 = br3.readLine();
@@ -381,8 +384,8 @@ public class MainViewController extends Application{
         alert.setHeaderText("Complete successfully");
         alert.setContentText("The dictionaries have been loaded");
         alert.showAndWait();
-        ObservableList<String> data = FXCollections.observableArrayList(cities);
-        comboBoxCities.getItems().addAll(data);
+        ObservableList<String> data1 = FXCollections.observableArrayList(cities);
+        comboBoxCities.getItems().addAll(data1);
 
 
 
@@ -473,6 +476,7 @@ public class MainViewController extends Application{
             String numberOfQuery = "";
             String title = "";
             String description="";
+            String narrative="";
             while (line10 != null) {
                 if (line10.contains("<num> Number:")) {
                     numberOfQuery = line10.substring(line10.indexOf("<num> Number:") + 14);
@@ -480,28 +484,37 @@ public class MainViewController extends Application{
                 else if (line10.contains("<title>")) {
                     title = line10.substring(line10.indexOf("<title>") + 8);
                 }
-                else if (line10.contains("Narrative")){
+                else if (line10.contains("Description")){
                     line10 = br10.readLine();
                     while (!line10.contains("</top>")){
                         description = description + " " + line10;
                         line10 = br10.readLine();
                     }
                 }
-                if (!title.equals("") && !numberOfQuery.equals("") && !description.equals("")) {
+                else if (line10.contains("Narrative")){
+                    line10 = br10.readLine();
+                    while (!line10.contains("</top>")){
+                        narrative = narrative + " " + line10;
+                        line10 = br10.readLine();
+                    }
+                }
+
+                if (!title.equals("") && !numberOfQuery.equals("") && !description.equals("") && !narrative.equals("")) {
                     if (numberOfQuery.endsWith(" ") || numberOfQuery.endsWith("\n"))
                         numberOfQuery = numberOfQuery.substring(0, numberOfQuery.length() - 1);
                     if (title.endsWith(" ") || title.endsWith("\n")) title = title.substring(0, title.length() - 1);
-                    main.searcher.rankCurrentQuery(numberOfQuery, main.parser.QueryParser(title,description, checkBoxSemantic.isSelected()), cities,textBrowseSaveResult.getText());
+                    main.searcher.rankCurrentQuery(numberOfQuery, main.parser.QueryParser(narrative,title,description, checkBoxSemantic.isSelected()), cities,textBrowseSaveResult.getText());
                     //  queries.put(number, title);
                     numberOfQuery = "";
                     title = "";
                     description = "";
+                    narrative="";
                 }
                 System.out.println(numberOfQuery);
                 line10 = br10.readLine();
             }
         } else {
-            List<String> list  = main.searcher.rankCurrentQuery("-1", main.parser.QueryParser(textBoxQuery.getText(), "",checkBoxSemantic.isSelected()), cities,textBrowseSaveResult.getText());
+            List<String> list  = main.searcher.rankCurrentQuery("-1", main.parser.QueryParser("",textBoxQuery.getText(), "",checkBoxSemantic.isSelected()), cities,textBrowseSaveResult.getText());
             Collections.reverse(list);
             int counter = 1;
             for(String s : list ) {

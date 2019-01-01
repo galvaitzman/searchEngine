@@ -778,7 +778,7 @@ public class Parse {
      * part B
      *
      */
-    public Set<String> QueryParser(String query, String description, boolean isSemantic)
+    public Set<String> QueryParser(String narrative, String query, String description, boolean isSemantic)
     {
         Set <String> dictionaryOfUnWantedWordsForDescription = new HashSet<>();
         if (!description.equals("")) {
@@ -877,7 +877,112 @@ public class Parse {
                     finalSet = new HashSet(queryTerms);
                 }
                 else{
+                    if (!description.equals("") && !containsBigLetter) {
+                        String[] descriptionArray = description.split(" ");
+                        String finalDescription = "";
+                        for (String s : descriptionArray) {
 
+                            if (!dictionaryOfUnWantedWordsForDescription.contains(s)){
+                                finalDescription = finalDescription + " " + s;
+                            }
+                        }
+                        descriptionArray = finalDescription.split(".");
+
+                        int notRelevantIndex = -1;
+                        int relevantIndex = -1;
+                        int counter = 0;
+                        for (String s : descriptionArray) {
+                            if ((s.contains("relevant") || s.contains("Relevant") ) && (!s.contains("non-relevant") || !s.contains("not relevant"))) {
+                                relevantIndex = counter;
+                            } else if (s.contains("non-relevant") || s.contains("not relevant")) {
+                                notRelevantIndex = counter;
+                            }
+                            counter++;
+                        }
+                        counter = 0;
+
+                        if (notRelevantIndex == -1) {
+                            parsingTextToText(finalDescription);
+                            for (String s : queryTerms) {
+                                finalSet.add(s.toUpperCase());
+                                finalSet.add(s.toLowerCase());
+                            }
+                            queryTerms.clear();
+                        } else if (notRelevantIndex > relevantIndex) {
+                            while (counter < notRelevantIndex) {
+                                parsingTextToText(descriptionArray[counter]);
+                                counter++;
+                            }
+                            for (String s : queryTerms) {
+                                finalSet.add(s.toUpperCase());
+                                finalSet.add(s.toLowerCase());
+                            }
+                            queryTerms.clear();
+                        } else {
+                            counter = notRelevantIndex + 1;
+                            while (counter < descriptionArray.length) {
+                                parsingTextToText(descriptionArray[counter]);
+                                counter++;
+                            }
+                            for (String s : queryTerms) {
+                                finalSet.add(s.toUpperCase());
+                                finalSet.add(s.toLowerCase());
+                            }
+                            queryTerms.clear();
+                        }
+                        String[] narrativeArray = narrative.split(" ");
+                        String finalnarrative = "";
+                        for (String s : narrativeArray) {
+                            if (!dictionaryOfUnWantedWordsForDescription.contains(s)){
+                                finalDescription = finalnarrative + " " + s;
+                            }
+                        }
+                        narrativeArray = finalnarrative.split(".");
+
+                        notRelevantIndex = -1;
+                        relevantIndex = -1;
+                        counter = 0;
+                        for (String s : narrativeArray) {
+                            if ((s.contains("relevant") || s.contains("Relevant") ) && (!s.contains("non-relevant") || !s.contains("not relevant"))) {
+                                relevantIndex = counter;
+                            } else if (s.contains("non-relevant") || s.contains("not relevant")) {
+                                notRelevantIndex = counter;
+                            }
+                            counter++;
+                        }
+                        counter = 0;
+
+                        if (notRelevantIndex == -1) {
+                            parsingTextToText(finalnarrative);
+                            for (String s : queryTerms) {
+                                finalSet.add(s.toUpperCase());
+                                finalSet.add(s.toLowerCase());
+                            }
+                            queryTerms.clear();
+                        } else if (notRelevantIndex > relevantIndex) {
+                            while (counter < notRelevantIndex) {
+                                parsingTextToText(narrativeArray[counter]);
+                                counter++;
+                            }
+                            for (String s : queryTerms) {
+                                finalSet.add(s.toUpperCase());
+                                finalSet.add(s.toLowerCase());
+                            }
+                            queryTerms.clear();
+                        } else {
+                            counter = notRelevantIndex + 1;
+                            while (counter < narrativeArray.length) {
+                                parsingTextToText(narrativeArray[counter]);
+                                counter++;
+                            }
+                            for (String s : queryTerms) {
+                                finalSet.add(s.toUpperCase());
+                                finalSet.add(s.toLowerCase());
+                            }
+                            queryTerms.clear();
+                        }
+                    }
+                    /*
                     if (!description.equals("")) {
                         String[] descriptionArray = description.split(" ");
                         String finalDescription = "";
@@ -925,7 +1030,7 @@ public class Parse {
                             }
                             queryTerms.clear();
                         }
-                    }
+                    }*/
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -960,7 +1065,8 @@ public class Parse {
                 if (notRelevantIndex == -1) {
                     parsingTextToText(finalDescription);
                     for (String s : queryTerms) {
-                        finalSet.add(s);
+                        finalSet.add(s.toUpperCase());
+                        finalSet.add(s.toLowerCase());
                     }
                     queryTerms.clear();
                 } else if (notRelevantIndex > relevantIndex) {
@@ -969,7 +1075,8 @@ public class Parse {
                         counter++;
                     }
                     for (String s : queryTerms) {
-                        finalSet.add(s);
+                        finalSet.add(s.toUpperCase());
+                        finalSet.add(s.toLowerCase());
                     }
                     queryTerms.clear();
                 } else {
@@ -979,7 +1086,59 @@ public class Parse {
                         counter++;
                     }
                     for (String s : queryTerms) {
-                        finalSet.add(s);
+                        finalSet.add(s.toUpperCase());
+                        finalSet.add(s.toLowerCase());
+                    }
+                    queryTerms.clear();
+                }
+                String[] narrativeArray = narrative.split(" ");
+                String finalnarrative = "";
+                for (String s : narrativeArray) {
+                    if (!dictionaryOfUnWantedWordsForDescription.contains(s)){
+                        finalDescription = finalnarrative + " " + s;
+                    }
+                }
+                narrativeArray = finalnarrative.split(".");
+
+                notRelevantIndex = -1;
+                relevantIndex = -1;
+                counter = 0;
+                for (String s : narrativeArray) {
+                    if ((s.contains("relevant") || s.contains("Relevant") ) && (!s.contains("non-relevant") || !s.contains("not relevant"))) {
+                        relevantIndex = counter;
+                    } else if (s.contains("non-relevant") || s.contains("not relevant")) {
+                        notRelevantIndex = counter;
+                    }
+                    counter++;
+                }
+                counter = 0;
+
+                if (notRelevantIndex == -1) {
+                    parsingTextToText(finalnarrative);
+                    for (String s : queryTerms) {
+                        finalSet.add(s.toUpperCase());
+                        finalSet.add(s.toLowerCase());
+                    }
+                    queryTerms.clear();
+                } else if (notRelevantIndex > relevantIndex) {
+                    while (counter < notRelevantIndex) {
+                        parsingTextToText(narrativeArray[counter]);
+                        counter++;
+                    }
+                    for (String s : queryTerms) {
+                        finalSet.add(s.toUpperCase());
+                        finalSet.add(s.toLowerCase());
+                    }
+                    queryTerms.clear();
+                } else {
+                    counter = notRelevantIndex + 1;
+                    while (counter < narrativeArray.length) {
+                        parsingTextToText(narrativeArray[counter]);
+                        counter++;
+                    }
+                    for (String s : queryTerms) {
+                        finalSet.add(s.toUpperCase());
+                        finalSet.add(s.toLowerCase());
                     }
                     queryTerms.clear();
                 }

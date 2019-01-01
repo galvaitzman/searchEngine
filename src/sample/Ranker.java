@@ -164,7 +164,7 @@ public class Ranker {
         double up = 0;
         up +=  (double)numberOfAppearancesOfCurentTermInDoc / dictionary.numberOfAppearancesOfMostCommonTermInDoc.get(doc_name);
 
-        double down = dictionary.weightOfDocNormalizedByMostCommonWordInDoc.get(doc_name) * Math.sqrt(queryAfterParsing.size());
+        double down = dictionary.weightOfDocNormalizedByMostCommonWordInDoc.get(doc_name) * Math.sqrt((double)queryAfterParsing.size()/2);
 
         if (rankingOfDocuments.get(doc_name) == null){
             rankingOfDocuments.put(doc_name,(up/down)*weightOfCosSim);
