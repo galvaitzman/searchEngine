@@ -487,6 +487,9 @@ public class Indexer {
         }
     }
 
+    /**
+     * calculating the IDF for each term, which will be taking in account in the ranker. the value of each term will be saved in IDF_BM25_Map.
+     */
     public void IDFForBM25() {
             /*
             public TreeMap<String,Integer> treeMapForLineNumberInPosting; // key = term, value = מספר שורה שבה הביטוי מופיע בקובץ פוסטינג

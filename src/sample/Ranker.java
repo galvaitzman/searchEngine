@@ -18,7 +18,7 @@ public class Ranker {
     double k1 = 1.2; // value of k in bm25
     double weightOfBM25 = 1.2;
     double weightOfCosSim = 0.2;
-    double weightOfLIneFirstAppearence=0.4;
+    double weightOfLIneFirstAppearence=0.1;
 
 
     public Ranker(String pathOfPostingAndDictionary, Dictionary dictionary) {

@@ -42,7 +42,7 @@ public class Main extends Application {
         primaryStage.setTitle("Search engine - Goni and Gal");
         FXMLLoader fxmlLoader = new FXMLLoader();
         Parent root = fxmlLoader.load(getClass().getResource("sample.fxml").openStream());
-        Scene scene = new Scene(root, 937, 670);
+        Scene scene = new Scene(root, 1100, 670);
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
